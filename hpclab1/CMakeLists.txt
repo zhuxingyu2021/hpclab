@@ -7,8 +7,14 @@ add_compile_options("-march=core-avx2")
 
 add_library(MYGEMM SHARED "lib/GEMM_fast.cpp" "lib/GEMM_naive.cpp" "lib/GEMM_utils.cpp")
 
-include_directories("include" "~/devtools/openblas/include")
-add_executable (GEMMwop "GEMMwop.cpp")
+include_directories("include")
 
-target_link_libraries(GEMMwop "/home/zhuxingyu/devtools/openblas/lib/libopenblas.a" MYGEMM)
+add_executable (GEMMwop "GEMMwop.cpp")
+target_link_libraries(GEMMwop MYGEMM)
+
+
+set(OPEN_BLAS_PATH "/home/zhuxingyu/devtools/openblas")
+target_include_directories(GEMMwop PRIVATE ${OPEN_BLAS_PATH}/include)
+target_link_libraries(GEMMwop ${OPEN_BLAS_PATH}/lib/libopenblas.so)
+
 

@@ -12,8 +12,8 @@
 #define GEMM_CACHELINE_SIZE 64
 #define GEMM_AVX2ALIGN_SIZE 64
 
-#define BK 256
-#define BN 512
+#define BK 512
+#define BN 256
 
 #define BM 1024
 

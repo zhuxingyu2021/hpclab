@@ -23,7 +23,7 @@ typedef struct {
 int main(int argc, char** argv) {
     int comm_sz, my_rank;
     int comm_rows, comm_cols;
-    
+
     float *A_local, *B_local, *C_local;
 
     float* A = NULL;
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
         localmnk.local_k = K;
         slavemnk.local_n = N;
         slavemnk.local_k = K;
-        if (M % comm_sz == 0) { 
+        if (M % comm_sz == 0) {
             localmnk.local_m = M / comm_sz;
             slavemnk.local_m = M / comm_sz;
         }
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     //output_matrix_tofile(filenameA.c_str(), localmnk.local_m, localmnk.local_k, A_local);
 
     //print_in_sync(my_rank, comm_sz, MASTER_PROCESS, localmnk.local_m, localmnk.local_n, localmnk.local_k);
-    
+
     gemm_fast_multiply(localmnk.local_k, localmnk.local_m, localmnk.local_n,
         A_local, localmnk.local_k,
         B_local, localmnk.local_n,

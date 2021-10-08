@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <time.h>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -73,4 +75,13 @@ void aligned_free(void* p2)
 {
     void* p1 = ((void**)p2)[-1];
     free(p1);
+}
+
+double get_wall_time(){
+    struct timeval time;
+    if (gettimeofday(&time,NULL)){
+        //  Handle error
+        return 0;
+    }
+    return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
