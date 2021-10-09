@@ -59,7 +59,7 @@ for i in range(len(time_dicts)):
     Naive_gflop[i] = Gflop/time_dicts[i]["Naive_t"]
 
 
-# In[26]:
+# In[6]:
 
 
 plt.figure(figsize=(15,12))
@@ -78,11 +78,6 @@ plt.yticks(fontsize=20)
 plt.xlabel("Martix Size(M, N, K)", fontsize=20)
 plt.ylabel("Gflops", fontsize=20)
 plt.legend(fontsize=20)
+plt.savefig("hpclab1.png")
 plt.show()
-
-
-# In[ ]:
-
-
-
 
