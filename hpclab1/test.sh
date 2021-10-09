@@ -4,27 +4,21 @@ EXEC_PATH=./GEMMwop
 
 make
 
-if [ -d "./build-release" ]; then
-  rm -rf ./build-release
-fi
+#if [ -d "./build-release" ]; then
+#  rm -rf ./build-release
+#fi
 
-mkdir build-release
+#mkdir build-release
 cd build-release
 
 if [ ! -e "./GEMMwop" ]; then
      cp ../GEMMwop ./
 fi
 
-if [ ! -d "./output" ];
-then
-  mkdir output
-else
-  rm -rf ./output
-fi
-
 export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
-for num in $(seq 512 8 2048)
+export MKL_ENABLE_INSTRUCTIONS=AVX2
+for num in $(seq 8 8 504)
 do
   file=output.txt
   touch $file
