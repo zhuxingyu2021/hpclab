@@ -460,10 +460,10 @@ void* gemm_fast_multiply_wo_factor8_single_thread_kernel(void* pf_args)
     return NULL;
 }
 
-void gemm_fast_multiply(int k, int m, int n,
-    float* A, int lda,
-    float* B, int ldb,
-    float* C, int ldc) {
+void sgemm_fast(int k, int m, int n,
+                float* A, int lda,
+                float* B, int ldb,
+                float* C, int ldc) {
     BM = ((8192 / N_THREADS) / 8) * 8;
     if(m < BM * N_THREADS){
         BM = ((m / N_THREADS)/8) * 8;

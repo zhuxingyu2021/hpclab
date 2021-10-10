@@ -27,14 +27,14 @@ void debug_print_matrix(int M, int N, float* mat);
 void* aligned_malloc(size_t required_bytes, size_t alignment);
 void aligned_free(void* p);
 
-void gemm_naive_multiply(int k, int m, int n,
-	float* A, int lda,
-	float* B, int ldb,
-	float* C, int ldc);
+void sgemm_naive(int k, int m, int n,
+                 float* A, int lda,
+                 float* B, int ldb,
+                 float* C, int ldc);
 
-void gemm_fast_multiply(int k, int m, int n,
-	float* A, int lda,
-	float* B, int ldb,
-	float* C, int ldc);
+void sgemm_fast(int k, int m, int n,
+                float* A, int lda,
+                float* B, int ldb,
+                float* C, int ldc);
 
 #endif

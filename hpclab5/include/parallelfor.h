@@ -7,10 +7,10 @@ typedef struct {
     int start;
     int end;
     int increment;
-    void* user_defined_arg = NULL;
+    void* user_defined_arg;
 
     int num_threads;
-    pthread_mutex_t* critial_mutex = NULL;
+    pthread_mutex_t* critial_mutex;
 
     //Initialized by worker in thread pool implementation
     int my_rank;

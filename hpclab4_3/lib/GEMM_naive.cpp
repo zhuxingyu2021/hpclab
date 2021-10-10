@@ -31,10 +31,10 @@ void* gemm_naive_multiply_single_thread_kernel(void* pf_args) {
     return NULL;
 }
 
-void gemm_naive_multiply(int k, int m, int n,
-	float* A, int lda,
-	float* B, int ldb,
-	float* C, int ldc)
+void sgemm_naive(int k, int m, int n,
+                 float* A, int lda,
+                 float* B, int ldb,
+                 float* C, int ldc)
 {
     gemm_naive_multiply_single_thread_kernel_args arg;
     arg.k = k; arg.m = m; arg.n = n;

@@ -127,10 +127,10 @@ int main(int argc, char** argv) {
 
     //print_in_sync(my_rank, comm_sz, MASTER_PROCESS, localmnk.local_m, localmnk.local_n, localmnk.local_k);
 
-    gemm_fast_multiply(localmnk.local_k, localmnk.local_m, localmnk.local_n,
-        A_local, localmnk.local_k,
-        B_local, localmnk.local_n,
-        C_local, localmnk.local_n);
+    sgemm_fast(localmnk.local_k, localmnk.local_m, localmnk.local_n,
+               A_local, localmnk.local_k,
+               B_local, localmnk.local_n,
+               C_local, localmnk.local_n);
 
     //string filenameA = to_string(my_rank) + string("C.csv");
     //output_matrix_tofile(filenameA.c_str(), localmnk.local_m, localmnk.local_n, C_local);
@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
             memset(C_naive, 0, sizeof(float) * M * N);
 
             start = MPI_Wtime();
-            gemm_fast_multiply(K, M, N, A, K, B, N, C_naive, N);
+            sgemm_fast(K, M, N, A, K, B, N, C_naive, N);
             finished = MPI_Wtime();
 
             double ts = finished - start;

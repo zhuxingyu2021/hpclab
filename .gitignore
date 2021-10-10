@@ -4,5 +4,10 @@
 *.rar
 *.o
 *.so
-GEMMwop
 *ipynb*
+*.tmp
+*.vs
+*.sln
+*.vcxproj*
+*x64*
+*.x

@@ -13,8 +13,9 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS})
 endif()
 
-include_directories("include" "~/devtools/openblas/include")
+set(OPEN_BLAS_PATH "$ENV{HOME}/devtools/openblas")
+include_directories("include" "${OPEN_BLAS_PATH}/include")
 add_executable (GEMMopenmp "GEMMopenmp.cpp" "lib/walltime.cpp" "lib/GEMM_fast.cpp" "lib/GEMM_naive.cpp" "lib/GEMM_utils.cpp")
-target_link_libraries(GEMMopenmp "/home/zhuxingyu/devtools/openblas/lib/libopenblas.a")
+target_link_libraries(GEMMopenmp "${OPEN_BLAS_PATH}/lib/libopenblas.a")
 
 

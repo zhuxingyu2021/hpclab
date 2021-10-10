@@ -1,18 +1,18 @@
 CC=icx
 CXX=icpx
-LD=ld.lld
 
 CC_LIB_SRC=  \
 
 CPP_LIB_SRC= \
 	lib/GEMM_fast.cpp\
 	lib/GEMM_naive.cpp\
-	lib/GEMM_utils.cpp
+	lib/GEMM_utils.cpp\
+	lib/walltime.cpp
 
 CC_MAIN_SRC= \
 
 CPP_MAIN_SRC= \
-	GEMMwop.cpp
+	GEMMopenmp.cpp
 
 INTEL_ROOT=/opt/intel/oneapi
 

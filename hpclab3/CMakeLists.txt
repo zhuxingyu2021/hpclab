@@ -9,7 +9,7 @@ include_directories("include")
 link_libraries("/usr/lib/x86_64-linux-gnu/libpthread.so")
 
 add_executable(GEMMpthreads GEMMpthreads.cpp lib/walltime.cpp)
-target_link_libraries(GEMMpthreads "/home/zhuxingyu/libs/libMYGEMM.so")
+target_link_libraries(GEMMpthreads "$ENV{HOME}/lib/libMYGEMM.so")
 
 add_executable(arraySum arraySum.cpp lib/walltime.cpp)
 add_executable(quadraticEquation quadraticEquation.cpp)

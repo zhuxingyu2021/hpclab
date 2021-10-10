@@ -1,18 +1,18 @@
 CC=icx
 CXX=icpx
-LD=ld.lld
 
 CC_LIB_SRC=  \
 
 CPP_LIB_SRC= \
 	lib/GEMM_fast.cpp\
 	lib/GEMM_naive.cpp\
-	lib/GEMM_utils.cpp
+	lib/GEMM_utils.cpp\
+	lib/walltime.cpp
 
 CC_MAIN_SRC= \
 
 CPP_MAIN_SRC= \
-	GEMMwop.cpp
+	GEMMparallelfor.cpp
 
 INTEL_ROOT=/opt/intel/oneapi
 
@@ -25,19 +25,21 @@ DEFS=-DINTEL_MKL
 
 CFLAGS=-O3 -march=core-avx2 $(DEFS) $(INC)
 CFLAGS_OBJ=-fPIC
-LDFLAGS=-fopenmp -qmkl=sequential
-LDLIBS=-L$(MKL_LIB)
+LDFLAGS=-fopenmp -qmkl=sequential -lparallelfor
+LDLIBS=-L$(MKL_LIB)\
+	-L.
 
 LIBOBJS=$(CC_LIB_SRC:.c=.o) $(CPP_LIB_SRC:.cpp=.o)
 ALLOBJS=$(LIBOBJS) $(CC_MAIN_SRC:.c=.o) $(CPP_MAIN_SRC:.cpp=.o)
 OUTPUT=$(CPP_MAIN_SRC:.cpp=.x)
-OUTPUT_LIB=libMYGEMM.so
+OUTPUT_LIBOBJS=lib/parallelfor.o
+OUTPUT_LIB=libparallelfor.so
 
 all: $(OUTPUT) $(OUTPUT_LIB)
 	rm $(ALLOBJS)
 
-$(OUTPUT): $(ALLOBJS)
-	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDLIBS) -o $@ $^
+$(OUTPUT): $(ALLOBJS) $(OUTPUT_LIB)
+	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDLIBS) -o $@ $(ALLOBJS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CFLAGS_OBJ) -c $< -o $@
@@ -45,7 +47,7 @@ $(OUTPUT): $(ALLOBJS)
 %.o: %.cpp
 	$(CXX) $(CFLAGS) $(CFLAGS_OBJ) -c $< -o $@
 
-%.so: $(LIBOBJS)
+%.so: $(OUTPUT_LIBOBJS)
 	$(CXX) $(CFLAGS) -shared -fPIC -o $@ $^
 
 clean:

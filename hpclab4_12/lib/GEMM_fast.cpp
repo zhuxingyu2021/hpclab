@@ -437,10 +437,10 @@ inline void gemm_fast_multiply_wo_factor8(int k, int m, int n,
     }
 }
 
-void gemm_fast_multiply(int k, int m, int n,
-    float* A, int lda,
-    float* B, int ldb,
-    float* C, int ldc) {
+void sgemm_fast(int k, int m, int n,
+                float* A, int lda,
+                float* B, int ldb,
+                float* C, int ldc) {
     if ((m % 8 == 0) && (n % 8 == 0)) {
         bool aligned_B = true, aligned_C = true;
 

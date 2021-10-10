@@ -122,10 +122,10 @@ int main(int argc, char** argv) {
     memset(C_local, 0, sizeof(float) * localmnk.local_m * localmnk.local_n);
 
 
-    gemm_fast_multiply(localmnk.local_k, localmnk.local_m, localmnk.local_n,
-        A_local, localmnk.local_k,
-        B_local, localmnk.local_n,
-        C_local, localmnk.local_n);
+    sgemm_fast(localmnk.local_k, localmnk.local_m, localmnk.local_n,
+               A_local, localmnk.local_k,
+               B_local, localmnk.local_n,
+               C_local, localmnk.local_n);
 
     if (my_rank == MASTER_PROCESS)
     {
@@ -153,7 +153,7 @@ int main(int argc, char** argv) {
             memset(C_naive, 0, sizeof(float) * M * N);
 
             start = MPI_Wtime();
-            gemm_fast_multiply(K, M, N, A, K, B, N, C_naive, N);
+            sgemm_fast(K, M, N, A, K, B, N, C_naive, N);
             finished = MPI_Wtime();
 
             double ts = finished - start;

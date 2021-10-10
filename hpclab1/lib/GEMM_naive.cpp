@@ -1,9 +1,9 @@
 #include "GEMM.h"
 
-void gemm_naive_multiply(int k, int m, int n,
-	float* A, int lda,
-	float* B, int ldb,
-	float* C, int ldc)
+void sgemm_naive(int k, int m, int n,
+                 float* A, int lda,
+                 float* B, int ldb,
+                 float* C, int ldc)
 {
     int i, j, p;
 

@@ -5,7 +5,7 @@
 #include "cmdline.h"
 #include <random>
 #include <sys/time.h>
-#include "mypthreads_utils.h"
+#include "mytime.h"
 
 #define N_ITER 1000
 

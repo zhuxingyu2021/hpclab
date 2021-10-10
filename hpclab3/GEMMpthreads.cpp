@@ -4,7 +4,7 @@
 #include "cmdline.h"
 #include <cstdlib>
 #include <time.h>
-#include "mypthreads_utils.h"
+#include "mytime.h"
 
 using namespace std;
 
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
 
     if(!no_single_thread){
         timestart = get_wall_time();
-        gemm_fast_multiply(K, M, N, A, K, B, N, C_singlethread, N);
+        sgemm_fast(K, M, N, A, K, B, N, C_singlethread, N);
         timeend = get_wall_time();
         double singlethread_multiply_time = timeend - timestart;
         cout << "Time cost by single thread gemm: " << singlethread_multiply_time << "s" << endl;
@@ -102,10 +102,10 @@ int main(int argc, char** argv) {
 void* gemm_worker(void* args){
     gemm_worker_arg* callarg = (gemm_worker_arg*)args;
 
-    gemm_fast_multiply(callarg->local_K, callarg->local_M, callarg->local_N,
-                       callarg->local_A, callarg->lda,
-                       callarg->local_B, callarg->ldb,
-                       callarg->local_C, callarg->ldc);
+    sgemm_fast(callarg->local_K, callarg->local_M, callarg->local_N,
+               callarg->local_A, callarg->lda,
+               callarg->local_B, callarg->ldb,
+               callarg->local_C, callarg->ldc);
 
     return NULL;
 }

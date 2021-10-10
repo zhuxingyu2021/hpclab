@@ -13,3 +13,7 @@ add_library(parallelfor SHARED "lib/parallelfor.cpp")
 
 add_executable (GEMMparallelfor "GEMMparallelfor.cpp" "lib/walltime.cpp" "lib/GEMM_fast.cpp" "lib/GEMM_naive.cpp" "lib/GEMM_utils.cpp")
 target_link_libraries(GEMMparallelfor parallelfor)
+
+set(OPEN_BLAS_PATH "$ENV{HOME}/devtools/openblas")
+target_include_directories(GEMMparallelfor PRIVATE ${OPEN_BLAS_PATH}/include)
+target_link_libraries(GEMMparallelfor ${OPEN_BLAS_PATH}/lib/libopenblas.so)

@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     timestart = get_wall_time();
     double blas_multiply_time = timeend - timestart;
     int r_times = 0;
-    //gemm_naive_multiply(K, M, N, A, K, B, N, C_naive, N);
+    //sgemm_naive(K, M, N, A, K, B, N, C_naive, N);
     while(1){
         r_times++;
         gemm_blas_multiply(K, M, N, A, K, B, N, C_blas, N);
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     r_times = 0;
     while(1){
         r_times++;
-        gemm_fast_multiply(K, M, N, A, K, B, N, C_gemm, N);
+        sgemm_fast(K, M, N, A, K, B, N, C_gemm, N);
         timeend = get_wall_time();
         optimized_multiply_time = timeend - timestart;
         if(optimized_multiply_time > time_limit) break;
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     r_times = 0;
     while(1){
         r_times++;
-        gemm_naive_multiply(K, M, N, A, K, B, N, C_naive, N);
+        sgemm_naive(K, M, N, A, K, B, N, C_naive, N);
         timeend = get_wall_time();
         naive_multiply_time = timeend - timestart;
         if(naive_multiply_time > time_limit) break;

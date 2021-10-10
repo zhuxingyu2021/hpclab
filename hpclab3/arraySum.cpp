@@ -2,7 +2,7 @@
 #include "cmdline.h"
 #include <ctime>
 #include <cstdlib>
-#include "mypthreads_utils.h"
+#include "mytime.h"
 #include <pthread.h>
 
 #define ARRAY_NUMMAX 10000
