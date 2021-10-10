@@ -14,12 +14,10 @@ CC_MAIN_SRC= \
 CPP_MAIN_SRC= \
 	GEMMparallelfor.cpp
 
-INTEL_ROOT=/opt/intel/oneapi
-
 INC=-Iinclude/\
-	-I${INTEL_ROOT}/mkl/2021.4.0/include
+	-I${INTEL_ROOT}/mkl/${INTEL_VERSION}/include
 
-MKL_LIB=${INTEL_ROOT}/mkl/2021.4.0/lib/intel64
+MKL_LIB=${INTEL_ROOT}/mkl/${INTEL_VERSION}/lib/intel64
 
 DEFS=-DINTEL_MKL
 

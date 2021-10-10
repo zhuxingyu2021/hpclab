@@ -5,8 +5,6 @@ CPP_LIB_SRC= \
 CPP_MAIN_SRC1=GEMMmpi_collection.cpp
 CPP_MAIN_SRC2=GEMMmpi_p2p.cpp
 
-MPI_ROOT=/home/zhuxingyu/devtools/mpi/mpich3
-
 INC=-Iinclude/\
 	-I${MPI_ROOT}/include
 

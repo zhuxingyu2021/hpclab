@@ -9,8 +9,6 @@ CPP_MAIN_SRC3=heated_plate_pf.cpp
 CPP_MAIN_SRC4=heated_plate_pf_cyclic.cpp
 CPP_MAIN_SRC5=heated_plate_pf_wo_thread_pool.cpp
 
-MPI_ROOT=/home/zhuxingyu/devtools/mpi/mpich3
-
 INC=-Iinclude/\
 	-I${MPI_ROOT}/include
 
