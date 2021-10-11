@@ -12,7 +12,7 @@ CPP_MAIN_SRC5=heated_plate_pf_wo_thread_pool.cpp
 INC=-Iinclude/\
 	-I${MPI_ROOT}/include
 
-DEFS= \
+DEFS+= \
 
 MPI_LIB=${MPI_ROOT}/lib/
 
@@ -47,6 +47,7 @@ OUTPUT5=$(CPP_MAIN_SRC5:.cpp=.x)
 
 all: $(OUTPUT1) $(OUTPUT2) $(OUTPUT3) $(OUTPUT4) $(OUTPUT5)
 	rm -f $(ALLOBJS1) $(ALLOBJS2) $(ALLOBJS3) $(ALLOBJS4) $(ALLOBJS5)
+	rm -f *.tmp
 
 $(OUTPUT1): $(ALLOBJS1)
 	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS1) $(LDLIBS1) -o $@ $^
@@ -75,3 +76,4 @@ $(OUTPUT5): $(ALLOBJS5)
 clean:
 	rm -f $(ALLOBJS1) $(ALLOBJS2) $(ALLOBJS3) $(ALLOBJS4) $(ALLOBJS5)
 	rm -f $(OUTPUT1) $(OUTPUT2) $(OUTPUT3) $(OUTPUT4) $(OUTPUT5)
+	rm -f *.tmp

@@ -10,7 +10,7 @@ CPP_MAIN_SRC4=arraySum.cpp
 
 INC=-Iinclude/
 
-DEFS= \
+DEFS+= \
 
 CFLAGS=-O3 $(DEFS) $(INC)
 CFLAGS_OBJ=
@@ -33,6 +33,7 @@ OUTPUT4=$(CPP_MAIN_SRC4:.cpp=.x)
 
 all: $(OUTPUT1) $(OUTPUT2) $(OUTPUT3) $(OUTPUT4)
 	rm -f $(ALLOBJS1) $(ALLOBJS2) $(ALLOBJS3) $(ALLOBJS4)
+	rm -f *.tmp
 
 $(OUTPUT1): $(ALLOBJS1)
 	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDFLAGS1) $(LDLIBS) -o $@ $^
@@ -58,3 +59,4 @@ $(OUTPUT4): $(ALLOBJS4)
 clean:
 	rm -f $(ALLOBJS1) $(ALLOBJS2) $(ALLOBJS3) $(ALLOBJS4)
 	rm -f $(OUTPUT1) $(OUTPUT2) $(OUTPUT3) $(OUTPUT4)
+	rm -f *.tmp

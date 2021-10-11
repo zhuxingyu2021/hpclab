@@ -20,7 +20,7 @@ INC=-Iinclude/\
 
 MKL_LIB=${INTEL_ROOT}/mkl/${INTEL_VERSION}/lib/intel64
 
-DEFS+=-DINTEL_MKL
+DEFS+=
 
 CFLAGS=-O3 -march=core-avx2 $(DEFS) $(INC)
 CFLAGS_OBJ=-fPIC
@@ -34,6 +34,7 @@ OUTPUT_LIB=libMYGEMM.so
 
 all: $(OUTPUT) $(OUTPUT_LIB)
 	rm $(ALLOBJS)
+	rm -f *.tmp
 
 $(OUTPUT): $(ALLOBJS)
 	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDLIBS) -o $@ $^
@@ -51,3 +52,4 @@ clean:
 	rm -f $(ALLOBJS)
 	rm -f $(OUTPUT)
 	rm -f $(OUTPUT_LIB)
+	rm -f *.tmp

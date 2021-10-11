@@ -8,7 +8,7 @@ CPP_MAIN_SRC2=GEMMmpi_p2p.cpp
 INC=-Iinclude/\
 	-I${MPI_ROOT}/include
 
-DEFS= \
+DEFS+= \
 
 MPI_LIB=${MPI_ROOT}/lib/
 
@@ -30,6 +30,7 @@ OUTPUT2=$(CPP_MAIN_SRC2:.cpp=.x)
 
 all: $(OUTPUT1) $(OUTPUT2)
 	rm $(ALLOBJS1) $(ALLOBJS2)
+	rm -f *.tmp
 
 $(OUTPUT1): $(ALLOBJS1)
 	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDLIBS) -o $@ $^
@@ -50,3 +51,4 @@ clean:
 	rm -f $(ALLOBJS1) $(ALLOBJS2)
 	rm -f $(OUTPUT1)
 	rm -f $(OUTPUT2)
+	rm -f *.tmp
