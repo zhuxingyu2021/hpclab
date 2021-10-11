@@ -14,13 +14,12 @@ DEFS= \
 
 CFLAGS=-O3 $(DEFS) $(INC)
 CFLAGS_OBJ=
-LDFLAGS= \
+LDFLAGS+= \
 	-lpthread
 
 LDFLAGS1=-lMYGEMM
 
-LDLIBS=
-LDLIBS1=-L${HOME}/lib/
+LDLIBS+=
 
 LIBOBJS=$(CC_LIB_SRC:.c=.o) $(CPP_LIB_SRC:.cpp=.o)
 ALLOBJS1=$(LIBOBJS) $(CPP_MAIN_SRC1:.cpp=.o)
@@ -36,16 +35,16 @@ all: $(OUTPUT1) $(OUTPUT2) $(OUTPUT3) $(OUTPUT4)
 	rm -f $(ALLOBJS1) $(ALLOBJS2) $(ALLOBJS3) $(ALLOBJS4)
 
 $(OUTPUT1): $(ALLOBJS1)
-	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDFLAGS1) $(LDLIBS) $(LDLIBS1) -o $@ $^
+	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDFLAGS1) $(LDLIBS) -o $@ $^
 
 $(OUTPUT2): $(ALLOBJS2)
-	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDFLAGS1) $(LDLIBS) $(LDLIBS1) -o $@ $^
+	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDLIBS) -o $@ $^
 
 $(OUTPUT3): $(ALLOBJS3)
-	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDFLAGS1) $(LDLIBS) $(LDLIBS1) -o $@ $^
+	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDLIBS) -o $@ $^
 
 $(OUTPUT4): $(ALLOBJS4)
-	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDFLAGS1) $(LDLIBS) $(LDLIBS1) -o $@ $^
+	$(CXX) $(CFLAGS) -fuse-ld=lld $(LDFLAGS) $(LDLIBS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CFLAGS_OBJ) -c $< -o $@

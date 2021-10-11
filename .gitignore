@@ -11,3 +11,4 @@
 *.vcxproj*
 *x64*
 *.x
+*.csv

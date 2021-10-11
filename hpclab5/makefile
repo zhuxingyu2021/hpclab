@@ -14,21 +14,23 @@ INC=-Iinclude/\
 
 DEFS= \
 
+MPI_LIB=${MPI_ROOT}/lib/
+
 CFLAGS=-O3 $(DEFS) $(INC)
 CFLAGS_OBJ=
-LDFLAGS=
-LDFLAGS1=$(LDFLAGS) -lmpi
+LDFLAGS+=
+LDFLAGS1=$(LDFLAGS) -lmpi -Wl,-rpath=$(MPI_LIB)
 LDFLAGS2=$(LDFLAGS) -fopenmp
-LDFLAGS3=$(LDFLAGS) -lparallelfor
-LDFLAGS4=$(LDFLAGS) -lparallelfor
-LDFLAGS5=$(LDFLAGS) -lparallelfor
+LDFLAGS3=$(LDFLAGS) -lparallelfor -lpthread
+LDFLAGS4=$(LDFLAGS) -lparallelfor -lpthread
+LDFLAGS5=$(LDFLAGS) -lparallelfor -lpthread
 
-LDLIBS=
-LDLIBS1=$(LDLIBS) -L${MPI_ROOT}/lib/
+LDLIBS+=
+LDLIBS1=$(LDLIBS) -L$(MPI_LIB)
 LDLIBS2=$(LDLIBS)
-LDLIBS3=$(LDLIBS) -L${HOME}/lib/
-LDLIBS4=$(LDLIBS) -L${HOME}/lib/
-LDLIBS5=$(LDLIBS) -L${HOME}/lib/
+LDLIBS3=$(LDLIBS)
+LDLIBS4=$(LDLIBS)
+LDLIBS5=$(LDLIBS)
 
 
 LIBOBJS=$(CC_LIB_SRC:.c=.o) $(CPP_LIB_SRC:.cpp=.o)

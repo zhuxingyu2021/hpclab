@@ -22,8 +22,8 @@ DEFS=-DINTEL_MKL
 
 CFLAGS=-O3 -march=core-avx2 $(DEFS) $(INC)
 CFLAGS_OBJ=-fPIC
-LDFLAGS=-fopenmp -qmkl=sequential
-LDLIBS=-L$(MKL_LIB)
+LDFLAGS+=-fopenmp -qmkl=sequential -Wl,-rpath=$(MKL_LIB)
+LDLIBS+=-L$(MKL_LIB)
 
 LIBOBJS=$(CC_LIB_SRC:.c=.o) $(CPP_LIB_SRC:.cpp=.o)
 ALLOBJS=$(LIBOBJS) $(CC_MAIN_SRC:.c=.o) $(CPP_MAIN_SRC:.cpp=.o)

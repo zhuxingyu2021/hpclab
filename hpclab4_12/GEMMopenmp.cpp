@@ -16,10 +16,10 @@
 using namespace std;
 
 // Run gemm by openblas/MKL
-void gemm_blas_multiply(int k, int m, int n,
-                        float* A, int lda,
-                        float* B, int ldb,
-                        float* C, int ldc)
+void sgemm_blas(int k, int m, int n,
+                float* A, int lda,
+                float* B, int ldb,
+                float* C, int ldc)
 {
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k,
                 1.0, A, lda, B, ldb, 0, C, ldc);
@@ -27,9 +27,9 @@ void gemm_blas_multiply(int k, int m, int n,
 
 int main(int argc, char** argv) {
     cmdline::parser cmdparser;
-    cmdparser.add<int>("M",'M',"the number of threads",true,512,cmdline::range(1,65536));
-    cmdparser.add<int>("N",'N',"the number of threads",true,512,cmdline::range(1,65536));
-    cmdparser.add<int>("K",'K',"the number of threads",true,512,cmdline::range(1,65536));
+    cmdparser.add<int>("M",'M',"the M dimension",true,512,cmdline::range(1,65536));
+    cmdparser.add<int>("N",'N',"the N dimension",true,512,cmdline::range(1,65536));
+    cmdparser.add<int>("K",'K',"the K dimension",true,512,cmdline::range(1,65536));
     cmdparser.add<int>("Multiple-runs",'m',"enable multiple runs",
                        false,0,cmdline::oneof(0, 1));
     cmdparser.add<double>("Time-limit",'t',"multiple runs time limit",
@@ -68,12 +68,12 @@ int main(int argc, char** argv) {
     memset(C_gemm, 0, sizeof(float) * M * N);
 
     timestart = get_wall_time();
-    double blas_multiply_time = timeend - timestart;
+    double blas_multiply_time;
     int r_times = 0;
     //sgemm_naive(K, M, N, A, K, B, N, C_naive, N);
     while(1){
         r_times++;
-        gemm_blas_multiply(K, M, N, A, K, B, N, C_blas, N);
+        sgemm_blas(K, M, N, A, K, B, N, C_blas, N);
         timeend = get_wall_time();
         blas_multiply_time = timeend - timestart;
         if(blas_multiply_time > time_limit) break;
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
 #endif
 
     timestart = get_wall_time();
-    double optimized_multiply_time = timeend - timestart;
+    double optimized_multiply_time;
     r_times = 0;
     while(1){
         r_times++;
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
     memset(C_naive, 0, sizeof(float) * M * N);
 
     timestart = get_wall_time();
-    double naive_multiply_time = timeend - timestart;
+    double naive_multiply_time;
     r_times = 0;
     while(1){
         r_times++;

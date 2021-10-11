@@ -10,15 +10,17 @@ INC=-Iinclude/\
 
 DEFS= \
 
+MPI_LIB=${MPI_ROOT}/lib/
+
 CFLAGS=-O3 $(DEFS) $(INC)
 CFLAGS_OBJ=
-LDFLAGS= \
-	-lMYGEMM \
-	-lmpi
 
-LDLIBS= \
-	-L${MPI_ROOT}/lib/ \
-	-L${HOME}/lib/
+LDFLAGS+= \
+	-lMYGEMM \
+	-lmpi \
+	-Wl,-rpath=-L$(MPI_LIB)
+
+LDLIBS+=-L$(MPI_LIB)
 
 LIBOBJS=$(CC_LIB_SRC:.c=.o) $(CPP_LIB_SRC:.cpp=.o)
 ALLOBJS1=$(LIBOBJS) $(CPP_MAIN_SRC1:.cpp=.o)

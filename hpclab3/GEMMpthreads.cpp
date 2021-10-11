@@ -20,9 +20,9 @@ void* gemm_worker(void* args);
 
 int main(int argc, char** argv) {
     cmdline::parser cmdparser;
-    cmdparser.add<int>("M",'M',"the number of threads",true,512,cmdline::range(1,65536));
-    cmdparser.add<int>("N",'N',"the number of threads",true,512,cmdline::range(1,65536));
-    cmdparser.add<int>("K",'K',"the number of threads",true,512,cmdline::range(1,65536));
+    cmdparser.add<int>("M",'M',"the M dimension",true,512,cmdline::range(1,65536));
+    cmdparser.add<int>("N",'N',"the N dimension",true,512,cmdline::range(1,65536));
+    cmdparser.add<int>("K",'K',"the K dimension",true,512,cmdline::range(1,65536));
     cmdparser.add<int>("num_workers",'n',"the number of threads",true,1,cmdline::range(1,16));
     cmdparser.add<int>("No-single-thread",'s',"the option to disable comparation to single thread algorithm",
                         false,0,cmdline::oneof(0, 1));

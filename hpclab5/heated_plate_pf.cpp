@@ -2,7 +2,7 @@
 # include <stdio.h>
 # include <math.h>
 # include "parallelfor.h"
-# include "mythreads_utils.h"
+# include "mytime.h"
 # include <unistd.h>
 #include "common_define.h"
 
