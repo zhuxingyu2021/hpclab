@@ -6,7 +6,8 @@ CC_LIB_SRC=  \
 CPP_LIB_SRC= \
 	lib/GEMM_fast.cpp\
 	lib/GEMM_naive.cpp\
-	lib/GEMM_utils.cpp
+	lib/GEMM_utils.cpp\
+
 
 CC_MAIN_SRC= \
 

@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
             cerr << "Your optimize method is wrong!" << endl;
             //output_matrix_tofile("A.csv", M, K, A);
             //output_matrix_tofile("B.csv", K, N, B);
-            //output_matrix_tofile("cnaive.csv", M, N, C_naive);
+            //output_matrix_tofile("cnaive.csv", M, N, C_blas);
             //output_matrix_tofile("cgemm.csv", M, N, C_gemm);
         }
     }

@@ -10,12 +10,11 @@
 #define C(i,j) C[ldc*(i)+(j)]
 
 #define GEMM_CACHELINE_SIZE 64
-#define GEMM_AVX2ALIGN_SIZE 64
 
 #define BK 256
-#define BN 512
+#define BN 240
 
-#define BM 1024
+#define BM 2048
 
 void random_initalize_matrix(int M, int N, float* mat);
 void output_matrix_tofile(const char* filename, int M, int N, float* mat);
