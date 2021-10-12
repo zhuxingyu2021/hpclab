@@ -2,7 +2,8 @@
 
 export INTEL_ROOT=/opt/intel/oneapi
 export INTEL_VERSION=2021.4.0
-export MPI_ROOT=/opt/intel/oneapi/mpi/2021.4.0/
+export MPI_ROOT=$(HOME)/mpich
+export CUDA_PATH=/usr/local/cuda
 export DEFS=-DINTEL_MKL
 
 TOP_PATH=$(shell pwd)
@@ -17,6 +18,7 @@ SUBDIR3=hpclab3
 SUBDIR4=hpclab4_12
 SUBDIR5=hpclab4_3
 SUBDIR6=hpclab5
+SUBDIR7=hpclab6
 
 TARGET1_SO=$(LIB_PATH)/libMYGEMM.so
 TARGET5_SO=$(LIB_PATH)/libparallelfor.so
@@ -27,6 +29,7 @@ SOURCE3_CPP=$(SUBDIR3)/$(shell ls $(SUBDIR3)|grep '.cpp$$|awk 'NR==1'')
 SOURCE4_CPP=$(SUBDIR4)/$(shell ls $(SUBDIR4)|grep '.cpp$$|awk 'NR==1'')
 SOURCE5_CPP=$(SUBDIR5)/$(shell ls $(SUBDIR5)|grep '.cpp$$|awk 'NR==1'')
 SOURCE6_CPP=$(SUBDIR6)/$(shell ls $(SUBDIR6)|grep '.cpp$$|awk 'NR==1'')
+SOURCE7_CPP=$(SUBDIR7)/$(shell ls $(SUBDIR7)|grep '.cpp$$|awk 'NR==1'')
 
 TARGET1=$(SOURCE1_CPP:.cpp=.x)
 TARGET2=$(SOURCE2_CPP:.cpp=.x)
@@ -34,8 +37,9 @@ TARGET3=$(SOURCE3_CPP:.cpp=.x)
 TARGET4=$(SOURCE4_CPP:.cpp=.x)
 TARGET5=$(SOURCE5_CPP:.cpp=.x)
 TARGET6=$(SOURCE6_CPP:.cpp=.x)
+TARGET7=$(SOURCE7_CPP:.cpp=.x)
 
-all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6)
+all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7)
 
 $(TARGET1):$(LIB_PATH)
 	cd $(SUBDIR1) && $(MAKE) && cd ..
@@ -59,6 +63,9 @@ $(TARGET5):$(LIB_PATH)
 $(TARGET6):$(LIB_PATH) $(TARGET5_SO)
 	cd $(SUBDIR6) && $(MAKE) && cd ..
 
+$(TARGET7):$(LIB_PATH)
+	cd $(SUBDIR7) && $(MAKE) && cd ..
+
 $(TARGET1_SO):$(TARGET1)
 
 $(TARGET5_SO):$(TARGET5)
@@ -73,4 +80,5 @@ clean:
 	cd $(SUBDIR4) && $(MAKE) clean && cd ..
 	cd $(SUBDIR5) && $(MAKE) clean && cd ..
 	cd $(SUBDIR6) && $(MAKE) clean && cd ..
+	cd $(SUBDIR7) && $(MAKE) clean && cd ..
 	rm -rf $(LIB_PATH)
