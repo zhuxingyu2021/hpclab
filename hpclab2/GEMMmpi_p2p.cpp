@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
 
     //string filenameA = to_string(my_rank) + string("C.csv");
     //output_matrix_tofile(filenameA.c_str(), localmnk.local_m, localmnk.local_n, C_local);
-
+    double tp;
     if (my_rank == MASTER_PROCESS)
     {
         float* p_C = C + localmnk.local_m * N;
@@ -146,27 +146,8 @@ int main(int argc, char** argv) {
 
         finished = MPI_Wtime();
 
-        double tp = finished - start;
+        tp = finished - start;
         cout << "Time cost by parrallel algorithm: " << tp << "s" << endl;
-
-
-        if(!no_single_thread) {
-            float *C_naive = (float *) aligned_malloc(sizeof(float) * M * N, GEMM_CACHELINE_SIZE);
-            memset(C_naive, 0, sizeof(float) * M * N);
-
-            start = MPI_Wtime();
-            sgemm_fast(K, M, N, A, K, B, N, C_naive, N);
-            finished = MPI_Wtime();
-
-            double ts = finished - start;
-            cout << "Time cost by single thread algorithm: " << ts << "s" << endl;
-            cout << "Accelerated " << ts / tp << " x" << endl;
-
-            if (!verify_matrix(M, N, C_naive, C)) {
-                cerr << "Your optimize method is wrong!" << endl;
-            }
-            aligned_free(C_naive);
-        }
 
         aligned_free(A);
         aligned_free(B);
@@ -182,6 +163,25 @@ int main(int argc, char** argv) {
 
     MPI_Type_free(&MPI_metainfo);
     MPI_Finalize();
+
+    
+    if(!no_single_thread) {
+        float *C_naive = (float *) aligned_malloc(sizeof(float) * M * N, GEMM_CACHELINE_SIZE);
+        memset(C_naive, 0, sizeof(float) * M * N);
+
+        start = MPI_Wtime();
+        sgemm_fast(K, M, N, A, K, B, N, C_naive, N);
+        finished = MPI_Wtime();
+
+        double ts = finished - start;
+        cout << "Time cost by single thread algorithm: " << ts << "s" << endl;
+        cout << "Accelerated " << ts / tp << " x" << endl;
+
+        if (!verify_matrix(M, N, C_naive, C)) {
+            cerr << "Your optimize method is wrong!" << endl;
+        }
+        aligned_free(C_naive);
+    }
 
     return 0;
 }

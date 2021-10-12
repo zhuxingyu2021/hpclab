@@ -1,6 +1,7 @@
 CC_LIB_SRC=  \
 
 CPP_LIB_SRC= \
+	lib/walltime.cpp
 
 CPP_MAIN_SRC1=GEMMmpi_collection.cpp
 CPP_MAIN_SRC2=GEMMmpi_p2p.cpp
@@ -18,7 +19,7 @@ CFLAGS_OBJ=
 LDFLAGS+= \
 	-lMYGEMM \
 	-lmpi \
-	-Wl,-rpath=-L$(MPI_LIB)
+	-Wl,-rpath=$(MPI_LIB)
 
 LDLIBS+=-L$(MPI_LIB)
 
@@ -29,7 +30,7 @@ OUTPUT1=$(CPP_MAIN_SRC1:.cpp=.x)
 OUTPUT2=$(CPP_MAIN_SRC2:.cpp=.x)
 
 all: $(OUTPUT1) $(OUTPUT2)
-	rm $(ALLOBJS1) $(ALLOBJS2)
+	rm -f $(ALLOBJS1) $(ALLOBJS2)
 	rm -f *.tmp
 
 $(OUTPUT1): $(ALLOBJS1)

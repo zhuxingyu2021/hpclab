@@ -4,6 +4,7 @@
 #include <string.h>
 #include "GEMM.h"
 #include <mpi.h>
+#include "mytime.h"
 #include "cmdline.h"
 
 using namespace std;
@@ -141,20 +142,32 @@ int main(int argc, char** argv) {
     }
 
     MPI_Gatherv(C_local, localmnk.local_m * localmnk.local_n, MPI_FLOAT, C, tmp_cnt_buff, tmp_displs_buff, MPI_FLOAT, MASTER_PROCESS, MPI_COMM_WORLD);
+    finished = MPI_Wtime();
 
+    double tp = finished - start;
     if (my_rank == MASTER_PROCESS) {
-        finished = MPI_Wtime();
-
-        double tp = finished - start;
         cout << "Time cost by parrallel algorithm: " << tp << "s" << endl;
 
+        free(tmp_cnt_buff);
+        free(tmp_displs_buff);
+    }
+    else{
+        aligned_free(B_local);
+    }
+    aligned_free(A_local);
+    aligned_free(C_local);
+
+    MPI_Type_free(&MPI_metainfo);
+    MPI_Finalize();
+
+    if (my_rank == MASTER_PROCESS){
         if(!no_single_thread) {
             float *C_naive = (float *) aligned_malloc(sizeof(float) * M * N, GEMM_CACHELINE_SIZE);
             memset(C_naive, 0, sizeof(float) * M * N);
 
-            start = MPI_Wtime();
+            start = get_wall_time();
             sgemm_fast(K, M, N, A, K, B, N, C_naive, N);
-            finished = MPI_Wtime();
+            finished = get_wall_time();
 
             double ts = finished - start;
             cout << "Time cost by single thread algorithm: " << ts << "s" << endl;
@@ -170,18 +183,7 @@ int main(int argc, char** argv) {
         aligned_free(A);
         aligned_free(B);
         aligned_free(C);
-
-        free(tmp_cnt_buff);
-        free(tmp_displs_buff);
     }
-    else{
-        aligned_free(B_local);
-    }
-    aligned_free(A_local);
-    aligned_free(C_local);
-
-    MPI_Type_free(&MPI_metainfo);
-    MPI_Finalize();
 
     return 0;
 }
