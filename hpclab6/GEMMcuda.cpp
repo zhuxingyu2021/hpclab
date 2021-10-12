@@ -4,14 +4,13 @@
 #include <iostream>
 #include <stdlib.h>
 
-#include "mytime.h"
 #include "cugemm.h"
 #include "cmdline.h"
 
 using namespace std;
 
 // Run gemm by cublas
-void sgemm_blas(int k, int m, int n,
+float sgemm_blas(int k, int m, int n,
     float* A, int lda,
     float* B, int ldb,
     float* C, int ldc)
@@ -19,6 +18,10 @@ void sgemm_blas(int k, int m, int n,
     float* d_A, * d_B, * d_C;
     float alpha = 1.0;
     float beta = 0;
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
     cudaMalloc(&d_A, sizeof(float) * m * k);
     cudaMalloc(&d_B, sizeof(float) * k * n);
     cudaMalloc(&d_C, sizeof(float) * m * n);
@@ -28,9 +31,14 @@ void sgemm_blas(int k, int m, int n,
 
     cublasHandle_t handle;
     cublasCreate(&handle);
+    cudaEventRecord(start, 0);
     // cublas按照column-major方式存储，所以要调用时要调换一些参数的位置
     cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k,
         &alpha, d_B, n, d_A, k, &beta, d_C, n);
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+    float elapsedTime;
+    cudaEventElapsedTime(&elapsedTime, start, stop);
 
     cudaMemcpy(C, d_C, sizeof(float) * m * n, cudaMemcpyDeviceToHost);
 
@@ -38,6 +46,8 @@ void sgemm_blas(int k, int m, int n,
     cudaFree(d_B);
     cudaFree(d_C);
     cublasDestroy(handle);
+
+    return elapsedTime;
 }
 
 int main(int argc, char** argv) {
@@ -67,35 +77,26 @@ int main(int argc, char** argv) {
     float* C_blas = (float*)malloc(sizeof(float) * M * N);
     float* C_gemm = (float*)malloc(sizeof(float) * M * N);
 
-    double timestart;
-    double timeend;
-
     srand((int)time(0));
     random_initalize_matrix(M, K, A);
     random_initalize_matrix(K, N, B);
 
-    timestart = get_wall_time();
-    double blas_multiply_time;
-    sgemm_blas(K, M, N, A, K, B, N, C_blas, N);
-    timeend = get_wall_time();
-    blas_multiply_time = timeend - timestart;
+    double blas_multiply_time = 0;
+    blas_multiply_time += sgemm_blas(K, M, N, A, K, B, N, C_blas, N);
 
     if (!easy_cmd) {
-        cout << "Time cost by cublas gemm: " << blas_multiply_time / 1 << "s" << endl;
+        cout << "Time cost by cublas gemm: " << blas_multiply_time / 1000.0 << "s" << endl;
     }
     else {
         cout << M << " " << N << " " << K << endl;
         cout << blas_multiply_time / 1 << endl;
     }
 
-    timestart = get_wall_time();
-    double optimized_multiply_time;
-    sgemm_fast(K, M, N, A, K, B, N, C_gemm, N);
-    timeend = get_wall_time();
-    optimized_multiply_time = timeend - timestart;
+    double optimized_multiply_time = 0;
+    optimized_multiply_time += sgemm_fast(K, M, N, A, K, B, N, C_gemm, N);
 
     if (!easy_cmd) {
-        cout << "Time cost by optimized gemm: " << optimized_multiply_time / 1 << "s" << endl;
+        cout << "Time cost by optimized gemm: " << optimized_multiply_time / 1000.0 << "s" << endl;
     }
     else {
         cout << M << " " << N << " " << K << endl;
