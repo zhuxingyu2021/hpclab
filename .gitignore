@@ -5,10 +5,11 @@
 *.o
 *.so
 *ipynb*
-*.tmp
+*.tmp*
 *.vs
 *.sln
 *.vcxproj*
 *x64*
 *.x
 *.csv
+

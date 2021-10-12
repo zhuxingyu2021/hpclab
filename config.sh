@@ -11,4 +11,4 @@ TOP_PATH=`pwd`
 LIB_PATH=$TOP_PATH/lib
 
 export LDLIBS=-L$LIB_PATH
-export LDFLAGS=-Wl,-rpath=$LIB_PATH -Wl,-rpath=${INTEL_ROOT}/compiler/${INTEL_VERSION}/linux/compiler/lib/intel64_lin/
+export LDFLAGS=-Wl,-rpath=$LIB_PATH

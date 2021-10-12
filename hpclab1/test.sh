@@ -1,9 +1,6 @@
 #!/usr/bin/env sh
 
-EXEC_PATH=./GEMMwop
-
-cd .. && source config.sh && cd hpclab1
-make
+EXEC_PATH=./GEMMwop.x
 
 if [ -d "./test.tmp" ]; then
   rm -rf ./test.tmp

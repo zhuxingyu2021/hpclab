@@ -2,7 +2,7 @@
 
 export INTEL_ROOT=/opt/intel/oneapi
 export INTEL_VERSION=2021.4.0
-export MPI_ROOT=/home/zhuxingyu/devtools/mpi/mpich3
+export MPI_ROOT=/opt/intel/oneapi/mpi/2021.4.0/
 export DEFS=-DINTEL_MKL
 
 TOP_PATH=$(shell pwd)

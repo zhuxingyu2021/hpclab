@@ -12,7 +12,7 @@ import operator
 # In[2]:
 
 
-outfilepath = "build-release/output.txt"
+outfilepath = "test.tmp/output.txt"
 
 
 # In[3]:

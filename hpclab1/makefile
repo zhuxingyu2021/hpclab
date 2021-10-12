@@ -23,7 +23,8 @@ DEFS+=
 
 CFLAGS=-O3 -march=core-avx2 $(DEFS) $(INC)
 CFLAGS_OBJ=-fPIC
-LDFLAGS+=-fopenmp -qmkl=sequential -Wl,-rpath=$(MKL_LIB)
+LDFLAGS+=-fopenmp -qmkl=sequential -Wl,-rpath=$(MKL_LIB) \
+	-Wl,-rpath=${INTEL_ROOT}/compiler/${INTEL_VERSION}/linux/compiler/lib/intel64_lin/
 LDLIBS+=-L$(MKL_LIB)
 
 LIBOBJS=$(CC_LIB_SRC:.c=.o) $(CPP_LIB_SRC:.cpp=.o)
