@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include "mytime.h"
 
-#define N_ITER 1000
+#define N_ITER 100000000
 
 using namespace std;
 

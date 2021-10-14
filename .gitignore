@@ -7,7 +7,7 @@
 *ipynb*
 *.tmp*
 *.vs
-*.sln
+*.sln*
 *.vcxproj*
 *x64*
 *.x
