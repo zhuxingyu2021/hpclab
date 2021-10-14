@@ -81,6 +81,10 @@ int main(int argc, char** argv) {
     random_initalize_matrix(M, K, A);
     random_initalize_matrix(K, N, B);
 
+    //debug_print_matrix(M, K, A);
+    //cout << endl;
+    //debug_print_matrix(K, N, B);
+
     double blas_multiply_time = 0;
     blas_multiply_time += sgemm_blas(K, M, N, A, K, B, N, C_blas, N);
 
