@@ -6,7 +6,7 @@ CPP_LIB_SRC= \
 	lib/cugemm_utils.cpp
 
 CU_LIB_SRC= \
-	lib/cugemm_fast_optimiz_4.cu
+	lib/cugemm_fast_optimiz_7.cu
 
 CC_MAIN_SRC= \
 
