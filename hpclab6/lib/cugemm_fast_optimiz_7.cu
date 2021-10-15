@@ -22,11 +22,11 @@ __global__ void sgemm_fast_kernel_optimiz_6(int k, int m, int n,
     int tx = threadIdx.x;
     int ty = threadIdx.y;
 
-    //BlockËù¼ÆËãµÄkernelµÄ×óÉÏ½ÇµÚÒ»¸öÔªËØÔÚ¾ØÕóCÖĞµÄÎ»ÖÃÎª(Bi,Bj)
+    //Blockæ‰€è®¡ç®—çš„kernelçš„å·¦ä¸Šè§’ç¬¬ä¸€ä¸ªå…ƒç´ åœ¨çŸ©é˜µCä¸­çš„ä½ç½®ä¸º(Bi,Bj)
     int Bi = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.x;
     int Bj = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.y;
 
-    //Ïß³ÌËù¼ÆËãµÄmicro kernelµÄ×óÉÏ½ÇµÚÒ»¸öÔªËØÔÚ¾ØÕóCÖĞµÄÎ»ÖÃÎª(Ci, Cj)
+    //çº¿ç¨‹æ‰€è®¡ç®—çš„micro kernelçš„å·¦ä¸Šè§’ç¬¬ä¸€ä¸ªå…ƒç´ åœ¨çŸ©é˜µCä¸­çš„ä½ç½®ä¸º(Ci, Cj)
     int Ci = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.x + threadIdx.x * REG_TILE_SIZE;
     int Cj = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.y + threadIdx.y * REG_TILE_SIZE;
 
@@ -56,11 +56,11 @@ __global__ void sgemm_fast_kernel_optimiz_6(int k, int m, int n,
         sm_A[(tx / 8) * 8 + 7][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a1.w;
 
         *reinterpret_cast<float4*>(&sm_B[tx][ty * REG_TILE_SIZE / 2]) = *reinterpret_cast<float4*>(&d_B(po + tx, Cj + 0));
-        *reinterpret_cast<float4*>(&sm_B[tx][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2])
+        *reinterpret_cast<float4*>(&sm_B[tx][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2]) 
             = *reinterpret_cast<float4*>(&d_B(po + tx, Cj + 4));
 
         __syncthreads();
-#pragma unroll
+        #pragma unroll
         for (int pi = 0; pi < KERNEL_SIZE; pi++)
         {
             reg_a0 = sm_A[pi][tx * REG_TILE_SIZE / 2 + 0];
