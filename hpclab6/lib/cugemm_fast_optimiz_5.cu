@@ -22,7 +22,7 @@ __global__ void sgemm_fast_kernel_optimiz_5(int k, int m, int n,
     int tx = threadIdx.x;
     int ty = threadIdx.y;
 
-    //Ïß³ÌËù¼ÆËãµÄmicro kernelµÄ×óÉÏ½ÇÔÚ¾ØÕóCÖĞµÄÎ»ÖÃÎª(Ci, Cj)
+    //çº¿ç¨‹æ‰€è®¡ç®—çš„micro kernelçš„å·¦ä¸Šè§’åœ¨çŸ©é˜µCä¸­çš„ä½ç½®ä¸º(Ci, Cj)
     int Ci = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.x + threadIdx.x * REG_TILE_SIZE;
     int Cj = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.y + threadIdx.y * REG_TILE_SIZE;
 
