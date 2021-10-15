@@ -80,6 +80,7 @@ int main(int argc, char** argv) {
     srand((int)time(0));
     random_initalize_matrix(M, K, A);
     random_initalize_matrix(K, N, B);
+    output_matrix_tofile("A.csv", M, K, A);
 
     //debug_print_matrix(M, K, A);
     //cout << endl;
@@ -109,7 +110,6 @@ int main(int argc, char** argv) {
 
     if (!verify_matrix(M, N, C_gemm, C_blas)) {
         cerr << "Your optimize method is wrong!" << endl;
-        //output_matrix_tofile("A.csv", M, K, A);
         //output_matrix_tofile("B.csv", K, N, B);
         //output_matrix_tofile("C_blas.csv", M, N, C_blas);
         //output_matrix_tofile("C_gemm.csv", M, N, C_gemm);

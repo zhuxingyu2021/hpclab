@@ -22,9 +22,13 @@ __global__ void sgemm_fast_kernel_optimiz_5(int k, int m, int n,
     int tx = threadIdx.x;
     int ty = threadIdx.y;
 
-    //线程所计算的micro kernel的左上角在矩阵C中的位置为(Ci, Cj)
-    int Ci = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.x + threadIdx.x * REG_TILE_SIZE;
-    int Cj = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.y + threadIdx.y * REG_TILE_SIZE;
+    //Block所计算的kernel的左上角第一个元素在矩阵C中的位置为(Bi,Bj)
+    int Bi = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.x;
+    int Bj = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.y;
+
+    //线程所计算的micro kernel的左上角第一个元素在矩阵C中的位置为(Ci, Cj)
+    int Ci = Bi + threadIdx.x * REG_TILE_SIZE;
+    int Cj = Bj + threadIdx.y * REG_TILE_SIZE;
 
     float reg_c0_0 = 0.0, reg_c0_1 = 0.0, reg_c0_2 = 0.0, reg_c0_3 = 0.0, reg_c0_4 = 0.0, reg_c0_5 = 0.0, reg_c0_6 = 0.0, reg_c0_7 = 0.0;
     float reg_c1_0 = 0.0, reg_c1_1 = 0.0, reg_c1_2 = 0.0, reg_c1_3 = 0.0, reg_c1_4 = 0.0, reg_c1_5 = 0.0, reg_c1_6 = 0.0, reg_c1_7 = 0.0;
@@ -41,44 +45,52 @@ __global__ void sgemm_fast_kernel_optimiz_5(int k, int m, int n,
 
     for (int po = 0; po < k; po += KERNEL_SIZE)
     {
-        sm_A[ty][tx * REG_TILE_SIZE / 2 + 0] = d_A(Ci + 0, po + ty);
-        sm_A[ty][tx * REG_TILE_SIZE / 2 + 1] = d_A(Ci + 1, po + ty);
-        sm_A[ty][tx * REG_TILE_SIZE / 2 + 2] = d_A(Ci + 2, po + ty);
-        sm_A[ty][tx * REG_TILE_SIZE / 2 + 3] = d_A(Ci + 3, po + ty);
-        sm_A[ty][tx * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 0] = d_A(Ci + 4, po + ty);
-        sm_A[ty][tx * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 1] = d_A(Ci + 5, po + ty);
-        sm_A[ty][tx * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 2] = d_A(Ci + 6, po + ty);
-        sm_A[ty][tx * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 3] = d_A(Ci + 7, po + ty);
+        sm_A[(tx / REG_TILE_SIZE) * REG_TILE_SIZE + 0][(tx % REG_TILE_SIZE) * KERNEL_SIZE + ty]
+            = d_A(Bi + (tx % REG_TILE_SIZE) * KERNEL_SIZE + ty, po + (tx / REG_TILE_SIZE) * REG_TILE_SIZE + 0);
+        sm_A[(tx / REG_TILE_SIZE) * REG_TILE_SIZE + 1][(tx % REG_TILE_SIZE) * KERNEL_SIZE + ty]
+            = d_A(Bi + (tx % REG_TILE_SIZE) * KERNEL_SIZE + ty, po + (tx / REG_TILE_SIZE) * REG_TILE_SIZE + 1);
+        sm_A[(tx / REG_TILE_SIZE) * REG_TILE_SIZE + 2][(tx % REG_TILE_SIZE) * KERNEL_SIZE + ty]
+            = d_A(Bi + (tx % REG_TILE_SIZE) * KERNEL_SIZE + ty, po + (tx / REG_TILE_SIZE) * REG_TILE_SIZE + 2);
+        sm_A[(tx / REG_TILE_SIZE) * REG_TILE_SIZE + 3][(tx % REG_TILE_SIZE) * KERNEL_SIZE + ty]
+            = d_A(Bi + (tx % REG_TILE_SIZE) * KERNEL_SIZE + ty, po + (tx / REG_TILE_SIZE) * REG_TILE_SIZE + 3);
+        sm_A[(tx / REG_TILE_SIZE) * REG_TILE_SIZE + 4][(tx % REG_TILE_SIZE) * KERNEL_SIZE + ty]
+            = d_A(Bi + (tx % REG_TILE_SIZE) * KERNEL_SIZE + ty, po + (tx / REG_TILE_SIZE) * REG_TILE_SIZE + 4);
+        sm_A[(tx / REG_TILE_SIZE) * REG_TILE_SIZE + 5][(tx % REG_TILE_SIZE) * KERNEL_SIZE + ty]
+            = d_A(Bi + (tx % REG_TILE_SIZE) * KERNEL_SIZE + ty, po + (tx / REG_TILE_SIZE) * REG_TILE_SIZE + 5);
+        sm_A[(tx / REG_TILE_SIZE) * REG_TILE_SIZE + 6][(tx % REG_TILE_SIZE) * KERNEL_SIZE + ty]
+            = d_A(Bi + (tx % REG_TILE_SIZE) * KERNEL_SIZE + ty, po + (tx / REG_TILE_SIZE) * REG_TILE_SIZE + 6);
+        sm_A[(tx / REG_TILE_SIZE) * REG_TILE_SIZE + 7][(tx % REG_TILE_SIZE) * KERNEL_SIZE + ty]
+            = d_A(Bi + (tx % REG_TILE_SIZE) * KERNEL_SIZE + ty, po + (tx / REG_TILE_SIZE) * REG_TILE_SIZE + 7);
 
-        sm_B[tx][ty * REG_TILE_SIZE / 2 + 0] = d_B(po + tx, Cj + 0);
-        sm_B[tx][ty * REG_TILE_SIZE / 2 + 1] = d_B(po + tx, Cj + 1);
-        sm_B[tx][ty * REG_TILE_SIZE / 2 + 2] = d_B(po + tx, Cj + 2);
-        sm_B[tx][ty * REG_TILE_SIZE / 2 + 3] = d_B(po + tx, Cj + 3);
-        sm_B[tx][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 0] = d_B(po + tx, Cj + 4);
-        sm_B[tx][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 1] = d_B(po + tx, Cj + 5);
-        sm_B[tx][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 2] = d_B(po + tx, Cj + 6);
-        sm_B[tx][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 3] = d_B(po + tx, Cj + 7);
+        sm_B[tx][ty * REG_TILE_SIZE + 0] = d_B(po + tx, Cj + 0);
+        sm_B[tx][ty * REG_TILE_SIZE + 1] = d_B(po + tx, Cj + 1);
+        sm_B[tx][ty * REG_TILE_SIZE + 2] = d_B(po + tx, Cj + 2);
+        sm_B[tx][ty * REG_TILE_SIZE + 3] = d_B(po + tx, Cj + 3);
+        sm_B[tx][ty * REG_TILE_SIZE + 4] = d_B(po + tx, Cj + 4);
+        sm_B[tx][ty * REG_TILE_SIZE + 5] = d_B(po + tx, Cj + 5);
+        sm_B[tx][ty * REG_TILE_SIZE + 6] = d_B(po + tx, Cj + 6);
+        sm_B[tx][ty * REG_TILE_SIZE + 7] = d_B(po + tx, Cj + 7);
 
         __syncthreads();
         for (int pi = 0; pi < KERNEL_SIZE; pi++)
         {
-            reg_a0 = sm_A[pi][tx * REG_TILE_SIZE / 2 + 0];
-            reg_a1 = sm_A[pi][tx * REG_TILE_SIZE / 2 + 1];
-            reg_a2 = sm_A[pi][tx * REG_TILE_SIZE / 2 + 2];
-            reg_a3 = sm_A[pi][tx * REG_TILE_SIZE / 2 + 3];
-            reg_a4 = sm_A[pi][tx * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 0];
-            reg_a5 = sm_A[pi][tx * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 1];
-            reg_a6 = sm_A[pi][tx * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 2];
-            reg_a7 = sm_A[pi][tx * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 3];
+            reg_a0 = sm_A[pi][tx * REG_TILE_SIZE + 0];
+            reg_a1 = sm_A[pi][tx * REG_TILE_SIZE + 1];
+            reg_a2 = sm_A[pi][tx * REG_TILE_SIZE + 2];
+            reg_a3 = sm_A[pi][tx * REG_TILE_SIZE + 3];
+            reg_a4 = sm_A[pi][tx * REG_TILE_SIZE + 4];
+            reg_a5 = sm_A[pi][tx * REG_TILE_SIZE + 5];
+            reg_a6 = sm_A[pi][tx * REG_TILE_SIZE + 6];
+            reg_a7 = sm_A[pi][tx * REG_TILE_SIZE + 7];
 
-            reg_b0 = sm_B[pi][ty * REG_TILE_SIZE / 2 + 0];
-            reg_b1 = sm_B[pi][ty * REG_TILE_SIZE / 2 + 1];
-            reg_b2 = sm_B[pi][ty * REG_TILE_SIZE / 2 + 2];
-            reg_b3 = sm_B[pi][ty * REG_TILE_SIZE / 2 + 3];
-            reg_b4 = sm_B[pi][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 0];
-            reg_b5 = sm_B[pi][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 1];
-            reg_b6 = sm_B[pi][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 2];
-            reg_b7 = sm_B[pi][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2 + 3];
+            reg_b0 = sm_B[pi][ty * REG_TILE_SIZE + 0];
+            reg_b1 = sm_B[pi][ty * REG_TILE_SIZE + 1];
+            reg_b2 = sm_B[pi][ty * REG_TILE_SIZE + 2];
+            reg_b3 = sm_B[pi][ty * REG_TILE_SIZE + 3];
+            reg_b4 = sm_B[pi][ty * REG_TILE_SIZE + 4];
+            reg_b5 = sm_B[pi][ty * REG_TILE_SIZE + 5];
+            reg_b6 = sm_B[pi][ty * REG_TILE_SIZE + 6];
+            reg_b7 = sm_B[pi][ty * REG_TILE_SIZE + 7];
 
             reg_c0_0 += reg_a0 * reg_b0; reg_c0_1 += reg_a0 * reg_b1; reg_c0_2 += reg_a0 * reg_b2; reg_c0_3 += reg_a0 * reg_b3; reg_c0_4 += reg_a0 * reg_b4; reg_c0_5 += reg_a0 * reg_b5; reg_c0_6 += reg_a0 * reg_b6; reg_c0_7 += reg_a0 * reg_b7;
             reg_c1_0 += reg_a1 * reg_b0; reg_c1_1 += reg_a1 * reg_b1; reg_c1_2 += reg_a1 * reg_b2; reg_c1_3 += reg_a1 * reg_b3; reg_c1_4 += reg_a1 * reg_b4; reg_c1_5 += reg_a1 * reg_b5; reg_c1_6 += reg_a1 * reg_b6; reg_c1_7 += reg_a1 * reg_b7;
@@ -102,11 +114,10 @@ __global__ void sgemm_fast_kernel_optimiz_5(int k, int m, int n,
     d_C(Ci + 7, Cj + 0) += reg_c7_0; d_C(Ci + 7, Cj + 1) += reg_c7_1; d_C(Ci + 7, Cj + 2) += reg_c7_2; d_C(Ci + 7, Cj + 3) += reg_c7_3; d_C(Ci + 7, Cj + 4) += reg_c7_4; d_C(Ci + 7, Cj + 5) += reg_c7_5; d_C(Ci + 7, Cj + 6) += reg_c7_6; d_C(Ci + 7, Cj + 7) += reg_c7_7;
 }
 
-
 float sgemm_fast(int k, int m, int n,
-	float* A, int lda,
-	float* B, int ldb,
-	float* C, int ldc)
+    float* A, int lda,
+    float* B, int ldb,
+    float* C, int ldc)
 {
     float* d_A, * d_B, * d_C;
     cudaEvent_t start, stop;

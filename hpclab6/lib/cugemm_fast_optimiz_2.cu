@@ -13,7 +13,7 @@
 
 #define REG_TILE_SIZE 4
 
-
+//使用microkernel增加计算访存比
 __global__ void sgemm_fast_kernel_optimiz_2(int k, int m, int n,
     float* d_A, float* d_B, float* d_C)
 {
@@ -23,7 +23,7 @@ __global__ void sgemm_fast_kernel_optimiz_2(int k, int m, int n,
     int tx = threadIdx.x;
     int ty = threadIdx.y;
 
-    //线程所计算的micro kernel的左上角在矩阵C中的位置为(Ci, Cj)
+    //线程所计算的micro kernel的左上角第一个元素在矩阵C中的位置为(Ci, Cj)
     int Ci = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.x + threadIdx.x * REG_TILE_SIZE;
     int Cj = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.y + threadIdx.y * REG_TILE_SIZE;
 

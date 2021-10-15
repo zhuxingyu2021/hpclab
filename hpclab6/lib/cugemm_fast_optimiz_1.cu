@@ -11,6 +11,7 @@
 #define KERNEL_SIZE 8
 #endif
 
+//使用shared memory
 __global__ void sgemm_fast_kernel_optimiz_1(int k, int m, int n,
     float* d_A, float* d_B, float* d_C)
 {
