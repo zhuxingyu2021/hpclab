@@ -3,10 +3,10 @@ NVCC=nvcc
 CC_LIB_SRC=  \
 
 CPP_LIB_SRC= \
-	lib/cugemm_utils.cpp\
+	lib/cugemm_utils.cpp
 
 CU_LIB_SRC= \
-	lib/cugemm_fast.cu
+	lib/cugemm_fast_optimiz_3.cu
 
 CC_MAIN_SRC= \
 
@@ -20,7 +20,7 @@ INC=-Iinclude\
 DEFS+=
 
 CFLAGS=-O3 $(DEFS) $(INC)
-NVCC_CFLAGS=$(CFLAGS)
+NVCC_CFLAGS=$(CFLAGS) -arch=compute_70 -code=sm_70
 
 LDFLAGS+=-lcuda -lcudart -lcublas
 
@@ -45,9 +45,9 @@ $(OUTPUT): $(ALLOBJS)
 
 %.o: %.cu
 	$(NVCC) $(NVCC_CFLAGS) -c $< -o $@
-
-%.so: $(LIBOBJS)
-	$(CXX) $(CFLAGS) -shared -fPIC -o $@ $^
+    
+%.ptx:%.cu
+	$(NVCC) $(NVCC_CFLAGS) -c $< -o $@ -ptx
 
 clean:
 	rm -f $(ALLOBJS)

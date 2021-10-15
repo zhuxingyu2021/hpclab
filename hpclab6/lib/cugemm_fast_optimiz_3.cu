@@ -8,7 +8,7 @@
 #define d_C(i,j) d_C[n*(i)+(j)]
 
 #ifndef KERNEL_SIZE
-#define KERNEL_SIZE 8
+#define KERNEL_SIZE 16
 #endif
 
 #define REG_TILE_SIZE 8
