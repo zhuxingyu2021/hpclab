@@ -6,6 +6,9 @@
 #include <mpi.h>
 #include "cmdline.h"
 
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 using namespace std;
 
 #define MASTER_PROCESS 0
@@ -122,6 +125,11 @@ int main(int argc, char** argv) {
     memset(C_local, 0, sizeof(float) * localmnk.local_m * localmnk.local_n);
 
 
+    int devicecnt;
+    cudaGetDeviceCount(&devicecnt);
+    int device = my_rank % devicecnt;
+    cudaSetDevice(device);
+    
     sgemm_fast(localmnk.local_k, localmnk.local_m, localmnk.local_n,
                A_local, localmnk.local_k,
                B_local, localmnk.local_n,
