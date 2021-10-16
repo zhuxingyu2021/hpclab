@@ -13,7 +13,7 @@
 
 #define REG_TILE_SIZE 8
 
-__global__ void sgemm_fast_kernel_optimiz_6(int k, int m, int n,
+__global__ void sgemm_fast_kernel_optimiz_7(int k, int m, int n,
     float* d_A, float* d_B, float* d_C)
 {
     __shared__ float sm_A[KERNEL_SIZE][KERNEL_SIZE * REG_TILE_SIZE],
@@ -137,7 +137,7 @@ float sgemm_fast(int k, int m, int n,
         dim_thread(KERNEL_SIZE, KERNEL_SIZE, 1);
 
     cudaEventRecord(start, 0);
-    sgemm_fast_kernel_optimiz_6 << <dim_block, dim_thread >> > (k, m, n,
+    sgemm_fast_kernel_optimiz_7 << <dim_block, dim_thread >> > (k, m, n,
         d_A, d_B, d_C);
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);

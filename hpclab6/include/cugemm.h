@@ -8,7 +8,7 @@ float sgemm_fast(int k, int m, int n,
 
 void random_initalize_matrix(int M, int N, float* mat);
 
-#define TOLERENCE 1E-3
+#define TOLERENCE 1E-1
 bool verify_matrix(int M, int N, float* mat1, float* mat2);
 
 void debug_print_matrix(int M, int N, float* mat);

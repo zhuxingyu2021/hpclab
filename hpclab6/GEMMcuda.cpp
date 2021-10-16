@@ -57,8 +57,8 @@ int main(int argc, char** argv) {
     cmdparser.add<int>("K", 'K', "the K dimension", true, 512, cmdline::range(1, 65536));
     cmdparser.add<int>("Multiple-runs", 'm', "enable multiple runs",
         false, 0, cmdline::oneof(0, 1));
-    cmdparser.add<double>("Time-limit", 't', "multiple runs time limit",
-        false, 0, cmdline::range(0, 3600));
+    cmdparser.add<int>("run-times", 't', "kernel run times",
+        false, 1, cmdline::range(0, 3600));
     cmdparser.add<int>("Easy", 'e', "easier cmdline output",
         false, 0, cmdline::oneof(0, 1));
     cmdparser.parse_check(argc, argv);
@@ -67,8 +67,8 @@ int main(int argc, char** argv) {
     int N = cmdparser.get<int>("N");
     int K = cmdparser.get<int>("K");
     int multiple_runs = cmdparser.get<int>("Multiple-runs");
-    double time_limit = 0.0;
-    if (multiple_runs) time_limit = cmdparser.get<double>("Time-limit");
+    int run_times = 1;
+    if (multiple_runs) run_times = cmdparser.get<int>("Time-limit");
     int easy_cmd = cmdparser.get<int>("Easy");
 
 
@@ -80,35 +80,44 @@ int main(int argc, char** argv) {
     srand((int)time(0));
     random_initalize_matrix(M, K, A);
     random_initalize_matrix(K, N, B);
-    output_matrix_tofile("A.csv", M, K, A);
+    //output_matrix_tofile("A.csv", M, K, A);
 
     //debug_print_matrix(M, K, A);
     //cout << endl;
     //debug_print_matrix(K, N, B);
 
     double blas_multiply_time = 0;
-    blas_multiply_time += sgemm_blas(K, M, N, A, K, B, N, C_blas, N);
+    int t = 1;
+    while (t > 0)
+    {
+        blas_multiply_time += sgemm_blas(K, M, N, A, K, B, N, C_blas, N);
+        t--;
+    }
 
     if (!easy_cmd) {
-        cout << "Time cost by cublas gemm: " << blas_multiply_time / 1000.0 << "s" << endl;
+        cout << "Time cost by cublas gemm: " << blas_multiply_time / (1000.0 * run_times) << "s" << endl;
     }
     else {
         cout << M << " " << N << " " << K << endl;
-        cout << blas_multiply_time / 1 << endl;
+        cout << blas_multiply_time / (1000.0 * run_times) << endl;
     }
 
     double optimized_multiply_time = 0;
-    optimized_multiply_time += sgemm_fast(K, M, N, A, K, B, N, C_gemm, N);
+    t = run_times;
+    while (t > 0) {
+        optimized_multiply_time += sgemm_fast(K, M, N, A, K, B, N, C_gemm, N);
+        t--;
+    }
 
     if (!easy_cmd) {
-        cout << "Time cost by optimized gemm: " << optimized_multiply_time / 1000.0 << "s" << endl;
+        cout << "Time cost by optimized gemm: " << optimized_multiply_time / (1000.0 * run_times) << "s" << endl;
     }
     else {
         cout << M << " " << N << " " << K << endl;
-        cout << optimized_multiply_time / 1 << endl;
+        cout << optimized_multiply_time / (1000.0 * run_times) << endl;
     }
 
-    if (!verify_matrix(M, N, C_gemm, C_blas)) {
+    if (run_times == 1 && (!verify_matrix(M, N, C_gemm, C_blas))) {
         cerr << "Your optimize method is wrong!" << endl;
         //output_matrix_tofile("B.csv", K, N, B);
         //output_matrix_tofile("C_blas.csv", M, N, C_blas);
