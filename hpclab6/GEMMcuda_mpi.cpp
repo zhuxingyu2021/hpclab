@@ -67,9 +67,9 @@ int main(int argc, char** argv) {
 
     if (my_rank == MASTER_PROCESS) {
 
-        A = (float*)aligned_malloc(sizeof(float) * M * K, GEMM_CACHELINE_SIZE);
-        B = (float*)aligned_malloc(sizeof(float) * K * N, GEMM_CACHELINE_SIZE);
-        C = (float*)aligned_malloc(sizeof(float) * M * N, GEMM_CACHELINE_SIZE);
+        A = (float*)malloc(sizeof(float) * M * K);
+        B = (float*)malloc(sizeof(float) * K * N);
+        C = (float*)malloc(sizeof(float) * M * N);
 
         srand((int)time(0));
         random_initalize_matrix(M, K, A);
@@ -107,14 +107,14 @@ int main(int argc, char** argv) {
     
     if (my_rank == MASTER_PROCESS) {
         localmnk.local_m = localmnk_m;
-        A_local = (float*)aligned_malloc(sizeof(float) * localmnk.local_m * localmnk.local_k, GEMM_CACHELINE_SIZE);
+        A_local = (float*)malloc(sizeof(float) * localmnk.local_m * localmnk.local_k);
         B_local = B;
-        C_local = (float*)aligned_malloc(sizeof(float) * localmnk.local_m * localmnk.local_n, GEMM_CACHELINE_SIZE);
+        C_local = (float*)malloc(sizeof(float) * localmnk.local_m * localmnk.local_n);
     }
     else {
-        A_local = (float*)aligned_malloc(sizeof(float) * localmnk.local_m * localmnk.local_k, GEMM_CACHELINE_SIZE);
-        B_local = (float*)aligned_malloc(sizeof(float) * localmnk.local_k * localmnk.local_n, GEMM_CACHELINE_SIZE);
-        C_local = (float*)aligned_malloc(sizeof(float) * localmnk.local_m * localmnk.local_n, GEMM_CACHELINE_SIZE);
+        A_local = (float*)malloc(sizeof(float) * localmnk.local_m * localmnk.local_k);
+        B_local = (float*)malloc(sizeof(float) * localmnk.local_k * localmnk.local_n);
+        C_local = (float*)malloc(sizeof(float) * localmnk.local_m * localmnk.local_n);
     }
 
     MPI_Scatterv(A, tmp_cnt_buff, tmp_displs_buff, MPI_FLOAT, A_local, localmnk.local_m * localmnk.local_k, MPI_FLOAT, MASTER_PROCESS, MPI_COMM_WORLD);
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
         cout << "Time cost by parrallel algorithm: " << tp << "s" << endl;
 
         if(!no_single_thread) {
-            float *C_naive = (float *) aligned_malloc(sizeof(float) * M * N, GEMM_CACHELINE_SIZE);
+            float *C_naive = (float *) malloc(sizeof(float) * M * N);
             memset(C_naive, 0, sizeof(float) * M * N);
 
             start = MPI_Wtime();
@@ -164,21 +164,21 @@ int main(int argc, char** argv) {
                 cerr << "Your optimize method is wrong!" << endl;
             }
 
-            aligned_free(C_naive);
+            free(C_naive);
         }
 
-        aligned_free(A);
-        aligned_free(B);
-        aligned_free(C);
+        free(A);
+        free(B);
+        free(C);
 
         free(tmp_cnt_buff);
         free(tmp_displs_buff);
     }
     else{
-        aligned_free(B_local);
+        free(B_local);
     }
-    aligned_free(A_local);
-    aligned_free(C_local);
+    free(A_local);
+    free(C_local);
 
     MPI_Type_free(&MPI_metainfo);
     MPI_Finalize();
