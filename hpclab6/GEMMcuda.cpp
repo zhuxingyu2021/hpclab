@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     int K = cmdparser.get<int>("K");
     int multiple_runs = cmdparser.get<int>("Multiple-runs");
     int run_times = 1;
-    if (multiple_runs) run_times = cmdparser.get<int>("Time-limit");
+    if (multiple_runs) run_times = cmdparser.get<int>("run-times");
     int easy_cmd = cmdparser.get<int>("Easy");
 
 
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
     //debug_print_matrix(K, N, B);
 
     double blas_multiply_time = 0;
-    int t = 1;
+    int t = run_times;
     while (t > 0)
     {
         blas_multiply_time += sgemm_blas(K, M, N, A, K, B, N, C_blas, N);
@@ -113,7 +113,6 @@ int main(int argc, char** argv) {
         cout << "Time cost by optimized gemm: " << optimized_multiply_time / (1000.0 * run_times) << "s" << endl;
     }
     else {
-        cout << M << " " << N << " " << K << endl;
         cout << optimized_multiply_time / (1000.0 * run_times) << endl;
     }
 

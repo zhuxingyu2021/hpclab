@@ -163,6 +163,8 @@ float sgemm_fast(int k, int m, int n,
 
     cudaMemcpy2D(C, ldc * sizeof(float), d_C, d_ldc * sizeof(float), n * sizeof(float), m, cudaMemcpyDeviceToHost);
 
+    cudaUnbindTexture(&texA);
+    cudaUnbindTexture(&texB);
     cudaFree(d_A);
     cudaFree(d_B);
     cudaFree(d_C);
