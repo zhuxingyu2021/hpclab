@@ -1,8 +1,6 @@
 #include "cugemm.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include "cuda_texture_types.h"
-#include "texture_fetch_functions.h"
 #include <cassert>
 #include <iostream>
 #include <omp.h>
@@ -37,7 +35,7 @@ float sgemm_fast_multithread(int k, int m, int n,
     checkCudaErrors(cudaDeviceSynchronize());
     timestart = get_wall_time();
 
-#pragma omp parallel for num_threads(n_thread) shared(k, m, n, A, lda, B, ldb, C, ldc, common_blocksz_x, streams, elapsedTime) 
+#pragma omp parallel for num_threads(n_thread) shared(k, m, n, A, lda, B, ldb, C, ldc, common_blocksz_x, streams) 
         for (int idx_x = 0; idx_x < m; idx_x += common_blocksz_x) {
             int my_rank = omp_get_thread_num();
             int blocksz_x = MIN(m - idx_x, common_blocksz_x);
@@ -55,10 +53,8 @@ float sgemm_fast_multithread(int k, int m, int n,
             checkCudaErrors(cudaMallocPitch(&d_B, &pitch_b, sizeof(float) * d_n, d_k));
             checkCudaErrors(cudaMallocPitch(&d_C, &pitch_c, sizeof(float) * d_n, d_m));
 
-            checkCudaErrors(cudaMemcpy2DAsync(d_A, pitch_a, &A(idx_x, 0), lda * sizeof(float), k * sizeof(float), blocksz_x, cudaMemcpyHostToDevice,
-                streams[my_rank]));
-            checkCudaErrors(cudaMemcpy2DAsync(d_B, pitch_b, B, ldb * sizeof(float), n * sizeof(float), k, cudaMemcpyHostToDevice, 
-                streams[my_rank]));
+            checkCudaErrors(cudaMemcpy2DAsync(d_A, pitch_a, &A(idx_x, 0), lda * sizeof(float), k * sizeof(float), blocksz_x, cudaMemcpyHostToDevice, streams[my_rank]));
+            checkCudaErrors(cudaMemcpy2DAsync(d_B, pitch_b, B, ldb * sizeof(float), n * sizeof(float), k, cudaMemcpyHostToDevice, streams[my_rank]));
             checkCudaErrors(cudaMemset(d_B + k * pitch_b / sizeof(float), 0, (d_k - k) * pitch_b));
             checkCudaErrors(cudaMemset(d_C, 0, d_m * pitch_c));
 
@@ -71,16 +67,15 @@ float sgemm_fast_multithread(int k, int m, int n,
 
             launch_kernel(k, d_lda, d_ldb, d_ldc, d_A, d_B, d_C, &dim_block, &dim_thread, &streams[my_rank]);
 
-            checkCudaErrors(cudaMemcpy2DAsync(&C(idx_x, 0), ldc * sizeof(float), d_C, d_ldc * sizeof(float), n * sizeof(float), blocksz_x, cudaMemcpyDeviceToHost),
-                streams[my_rank]);
+            checkCudaErrors(cudaMemcpy2DAsync(&C(idx_x, 0), ldc * sizeof(float), d_C, d_ldc * sizeof(float), n * sizeof(float), blocksz_x, cudaMemcpyDeviceToHost, streams[my_rank]));
 
             checkCudaErrors(cudaFree(d_A));
             checkCudaErrors(cudaFree(d_B));
             checkCudaErrors(cudaFree(d_C));
         }
-        checkCudaErrors(cudaSetDevice(0));
-        checkCudaErrors(cudaDeviceSynchronize());
-        timeend = get_wall_time();
+    checkCudaErrors(cudaSetDevice(0));
+    checkCudaErrors(cudaDeviceSynchronize());
+    timeend = get_wall_time();
 
-        return timeend - timestart;
+    return timeend - timestart;
 }
