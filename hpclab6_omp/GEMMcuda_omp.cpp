@@ -53,12 +53,14 @@ int main(int argc, char** argv) {
     double singlethread_multiply_time = .0;
     while (t > 0)
     {
+        timestart = get_wall_time();
         singlethread_multiply_time += sgemm_fast(K, M, N, A, K, B, N, C_singlethread, N);
+        timeend = get_wall_time();
         t--;
     }
 
     if (!easy_cmd) {
-        cout << "Time cost by cublas gemm: " << singlethread_multiply_time / run_times << "s" << endl;
+        cout << "Time cost by cublas gemm: " << timeend - timestart << "s" << endl;
     }
     else {
         cout << M << " " << N << " " << K << endl;
@@ -68,12 +70,14 @@ int main(int argc, char** argv) {
     t = run_times;
     double multithread_multiply_time = .0;
     while (t > 0) {
+        timestart = get_wall_time();
         multithread_multiply_time += sgemm_fast_multithread(K, M, N, A, K, B, N, C_multithread, N, n_threads);
+        timeend = get_wall_time();
         t--;
     }
 
     if (!easy_cmd) {
-        cout << "Time cost by optimized gemm: " << multithread_multiply_time / run_times << "s" << endl;
+        cout << "Time cost by optimized gemm: " << timeend - timestart << "s" << endl;
     }
     else {
         cout << (timeend - timestart) / run_times << endl;

@@ -27,23 +27,16 @@ float sgemm_fast_multithread(int k, int m, int n,
     float* C, int ldc,
     int n_thread)
 {
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-
     int common_blocksz_x = m / n_thread;
     int device_cnt;
     checkCudaErrors(cudaGetDeviceCount(&device_cnt));
+    checkCudaErrors(cudaDeviceSynchronize());
 
 #ifdef WIN64
     cudaStream_t* streams = (cudaStream_t*)malloc(sizeof(cudaStream_t) * n_thread);
 #else
     cudaStream_t streams[n_thread];
 #endif
-
-    checkCudaErrors(cudaSetDevice(0));
-    checkCudaErrors(cudaDeviceSynchronize());
-    cudaEventRecord(start);
 
 #pragma omp parallel for num_threads(n_thread) shared(k, m, n, A, lda, B, ldb, C, ldc, common_blocksz_x, streams) 
         for (int idx_x = 0; idx_x < m; idx_x += common_blocksz_x) {
@@ -83,17 +76,11 @@ float sgemm_fast_multithread(int k, int m, int n,
             checkCudaErrors(cudaFree(d_A));
             checkCudaErrors(cudaFree(d_B));
             checkCudaErrors(cudaFree(d_C));
-            checkCudaErrors(cudaDeviceSynchronize());
+            checkCudaErrors(cudaStreamSynchronize(streams[my_rank]));
         }
-    checkCudaErrors(cudaSetDevice(0));
-    checkCudaErrors(cudaEventRecord(stop));
 
 #ifdef WIN64
     free(streams);
 #endif
-
-    float elapsedTime;
-    checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
-    return elapsedTime / 1000.0;
+    return 0;
 }

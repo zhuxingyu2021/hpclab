@@ -23,9 +23,6 @@ float sgemm_fast(int k, int m, int n,
     float* B, int ldb,
     float* C, int ldc)
 {
-    cudaEvent_t start, stop;
-    checkCudaErrors(cudaEventCreate(&start));
-    checkCudaErrors(cudaEventCreate(&stop));
 
     float* d_A, * d_B, * d_C;
     size_t pitch_a, pitch_b, pitch_c;
@@ -35,8 +32,6 @@ float sgemm_fast(int k, int m, int n,
     int d_k = ((k - 1) / KERNEL_SIZE + 1) * KERNEL_SIZE;
 
     checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaEventRecord(start));
-
     checkCudaErrors(cudaMallocPitch(&d_A, &pitch_a, sizeof(float) * d_k, d_m));
     checkCudaErrors(cudaMallocPitch(&d_B, &pitch_b, sizeof(float) * d_n, d_k));
     checkCudaErrors(cudaMallocPitch(&d_C, &pitch_c, sizeof(float) * d_n, d_m));
@@ -61,10 +56,7 @@ float sgemm_fast(int k, int m, int n,
     checkCudaErrors(cudaFree(d_B));
     checkCudaErrors(cudaFree(d_C));
 
-    checkCudaErrors(cudaEventRecord(stop));
-    
-    float elapsedTime;
     checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
-    return elapsedTime / 1000.0;
+
+    return 0;
 }
