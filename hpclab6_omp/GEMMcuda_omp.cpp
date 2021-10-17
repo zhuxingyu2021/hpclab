@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     t = run_times;
     double multithread_multiply_time = .0;
     while (t > 0) {
-        multithread_multiply_time += sgemm_fast_multithread(K, M, N, A, K, B, N, C_multithread, N, 0, 0);
+        multithread_multiply_time += sgemm_fast_multithread(K, M, N, A, K, B, N, C_multithread, N, 4, 1);
         t--;
     }
 

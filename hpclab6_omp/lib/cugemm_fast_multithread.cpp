@@ -5,6 +5,7 @@
 #include <iostream>
 #include <omp.h>
 #include "mytime.h"
+#include <stdlib.h>
 
 using namespace std;
 
@@ -29,7 +30,11 @@ float sgemm_fast_multithread(int k, int m, int n,
 {
     float timestart, timeend;
     int common_blocksz_x = m / n_thread;
+#ifdef WIN64
+    cudaStream_t* streams = (cudaStream_t*)malloc(sizeof(cudaStream_t) * n_thread);
+#else
     cudaStream_t streams[n_thread];
+#endif
 
     checkCudaErrors(cudaSetDevice(0));
     checkCudaErrors(cudaDeviceSynchronize());
@@ -72,10 +77,14 @@ float sgemm_fast_multithread(int k, int m, int n,
             checkCudaErrors(cudaFree(d_A));
             checkCudaErrors(cudaFree(d_B));
             checkCudaErrors(cudaFree(d_C));
+            checkCudaErrors(cudaDeviceSynchronize());
         }
     checkCudaErrors(cudaSetDevice(0));
-    checkCudaErrors(cudaDeviceSynchronize());
     timeend = get_wall_time();
+
+#ifdef WIN64
+    free(streams);
+#endif
 
     return timeend - timestart;
 }
