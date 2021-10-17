@@ -23,7 +23,7 @@ typedef struct {
 int main(int argc, char** argv) {
     int comm_sz, my_rank;
     int comm_rows, comm_cols;
-
+    
     float *A_local, *B_local, *C_local;
 
     float* A = NULL;
@@ -65,6 +65,8 @@ int main(int argc, char** argv) {
     K = cmdparser.get<int>("K");
     no_single_thread = cmdparser.get<int>("No-single-thread");
 
+    MPI_Request req_s[3];
+    MPI_Status sta_s[3];
     if (my_rank == MASTER_PROCESS) {
         float* p_A;
 
@@ -83,7 +85,7 @@ int main(int argc, char** argv) {
         localmnk.local_k = K;
         slavemnk.local_n = N;
         slavemnk.local_k = K;
-        if (M % comm_sz == 0) {
+        if (M % comm_sz == 0) { 
             localmnk.local_m = M / comm_sz;
             slavemnk.local_m = M / comm_sz;
         }
@@ -97,8 +99,8 @@ int main(int argc, char** argv) {
 
         for (int i = 1; i < comm_sz; i++) {
             MPI_Send(&slavemnk, 1, MPI_metainfo, i, 0, MPI_COMM_WORLD);
-            MPI_Send(p_A, slavemnk.local_m * K, MPI_FLOAT, i, 0, MPI_COMM_WORLD);
-            MPI_Send(B, N * K, MPI_FLOAT, i, 0, MPI_COMM_WORLD);
+            MPI_Isend(p_A, slavemnk.local_m * K, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &req_s[1]);
+            MPI_Isend(B, N * K, MPI_FLOAT, i, 0, MPI_COMM_WORLD, &req_s[2]);
 
             p_A += slavemnk.local_m * K;
         }
@@ -111,26 +113,31 @@ int main(int argc, char** argv) {
         //output_matrix_tofile("B.csv", K, N, B);
     }
     else {
-        MPI_Recv(&localmnk, 1, MPI_metainfo, MASTER_PROCESS, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+        MPI_Request req_r[3];
+        MPI_Status sta_r[3];
+        MPI_Recv(&localmnk, 1, MPI_metainfo, MASTER_PROCESS, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         A_local = (float*)aligned_malloc(sizeof(float) * localmnk.local_m * localmnk.local_k, GEMM_CACHELINE_SIZE);
         B_local = (float*)aligned_malloc(sizeof(float) * localmnk.local_k * localmnk.local_n, GEMM_CACHELINE_SIZE);
         C_local = (float*)aligned_malloc(sizeof(float) * localmnk.local_m * localmnk.local_n, GEMM_CACHELINE_SIZE);
 
-        MPI_Recv(A_local, localmnk.local_m * localmnk.local_k, MPI_FLOAT, MASTER_PROCESS, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Recv(B_local, localmnk.local_k * localmnk.local_n, MPI_FLOAT, MASTER_PROCESS, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Irecv(A_local, localmnk.local_m * localmnk.local_k, MPI_FLOAT, MASTER_PROCESS, 0, MPI_COMM_WORLD, &req_r[1]);
+        MPI_Irecv(B_local, localmnk.local_k * localmnk.local_n, MPI_FLOAT, MASTER_PROCESS, 0, MPI_COMM_WORLD, &req_r[2]);
         memset(C_local, 0, sizeof(float) * localmnk.local_m * localmnk.local_n);
+
+        MPI_Wait(&req_r[1], &sta_r[1]);
+        MPI_Wait(&req_r[2], &sta_r[2]);
     }
 
     //string filenameA = to_string(my_rank) + string("A.csv");
     //output_matrix_tofile(filenameA.c_str(), localmnk.local_m, localmnk.local_k, A_local);
 
     //print_in_sync(my_rank, comm_sz, MASTER_PROCESS, localmnk.local_m, localmnk.local_n, localmnk.local_k);
-
+    
     sgemm_fast(localmnk.local_k, localmnk.local_m, localmnk.local_n,
-               A_local, localmnk.local_k,
-               B_local, localmnk.local_n,
-               C_local, localmnk.local_n);
+        A_local, localmnk.local_k,
+        B_local, localmnk.local_n,
+        C_local, localmnk.local_n);
 
     //string filenameA = to_string(my_rank) + string("C.csv");
     //output_matrix_tofile(filenameA.c_str(), localmnk.local_m, localmnk.local_n, C_local);
@@ -139,6 +146,9 @@ int main(int argc, char** argv) {
     if (my_rank == MASTER_PROCESS)
     {
         float* p_C = C + localmnk.local_m * N;
+
+        MPI_Wait(&req_s[1], &sta_s[1]);
+        MPI_Wait(&req_s[2], &sta_s[2]);
 
         for (int i = 1; i < comm_sz; i++) {
             MPI_Recv(p_C, slavemnk.local_m * slavemnk.local_n, MPI_FLOAT, i, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
@@ -160,8 +170,8 @@ int main(int argc, char** argv) {
 
     MPI_Type_free(&MPI_metainfo);
     MPI_Finalize();
-
-
+    
+    
     if (my_rank == MASTER_PROCESS){
         if(!no_single_thread) {
             float *C_naive = (float *) aligned_malloc(sizeof(float) * M * N, GEMM_CACHELINE_SIZE);

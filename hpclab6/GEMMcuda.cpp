@@ -19,32 +19,32 @@ float sgemm_blas(int k, int m, int n,
     float alpha = 1.0;
     float beta = 0;
     cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+    checkCudaErrors(cudaEventCreate(&start));
+    checkCudaErrors(cudaEventCreate(&stop));
 
-    cudaMalloc(&d_A, sizeof(float) * m * k);
-    cudaMalloc(&d_B, sizeof(float) * k * n);
-    cudaMalloc(&d_C, sizeof(float) * m * n);
-    cudaMemcpy(d_A, A, sizeof(float) * m * k, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, B, sizeof(float) * k * n, cudaMemcpyHostToDevice);
-    cudaMemset(d_C, 0, sizeof(float) * m * n);
+    checkCudaErrors(cudaMalloc(&d_A, sizeof(float) * m * k));
+    checkCudaErrors(cudaMalloc(&d_B, sizeof(float) * k * n));
+    checkCudaErrors(cudaMalloc(&d_C, sizeof(float) * m * n));
+    checkCudaErrors(cudaMemcpy(d_A, A, sizeof(float) * m * k, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_B, B, sizeof(float) * k * n, cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemset(d_C, 0, sizeof(float) * m * n));
 
     cublasHandle_t handle;
     cublasCreate(&handle);
-    cudaEventRecord(start, 0);
+    checkCudaErrors(cudaEventRecord(start, 0));
     // cublas按照column-major方式存储，所以要调用时要调换一些参数的位置
     cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k,
         &alpha, d_B, n, d_A, k, &beta, d_C, n);
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    checkCudaErrors(cudaEventRecord(stop, 0));
+    checkCudaErrors(cudaEventSynchronize(stop));
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
 
-    cudaMemcpy(C, d_C, sizeof(float) * m * n, cudaMemcpyDeviceToHost);
+    checkCudaErrors(cudaMemcpy(C, d_C, sizeof(float) * m * n, cudaMemcpyDeviceToHost));
 
-    cudaFree(d_A);
-    cudaFree(d_B);
-    cudaFree(d_C);
+    checkCudaErrors(cudaFree(d_A));
+    checkCudaErrors(cudaFree(d_B));
+    checkCudaErrors(cudaFree(d_C));
     cublasDestroy(handle);
 
     return elapsedTime;

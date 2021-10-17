@@ -1,28 +1,21 @@
 #include "cugemm.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include "cuda_texture_types.h"
-#include "texture_fetch_functions.h"
-#include <cassert>
-#include <iostream>
-using namespace std;
-
-typedef texture<float4, cudaTextureType1D, cudaReadModeElementType> floatTex;
-
-floatTex texA(0, cudaFilterModePoint, cudaAddressModeBorder);
-floatTex texB(0, cudaFilterModePoint, cudaAddressModeBorder);
-
-#define d_A(i,j) (lda*(i)+(j))
-#define d_B(i,j) (ldb*(i)+(j))
-#define d_C(i,j) d_C[ldc*(i)+(j)]
 
 #ifndef KERNEL_SIZE
 #define KERNEL_SIZE 16
+#define REG_TILE_SIZE 8
 #endif
 
-#define REG_TILE_SIZE 8
+#ifndef d_A
+#define d_A(i,j) d_A[lda*(i)+(j)]
+#define d_B(i,j) d_B[ldb*(i)+(j)]
+#define d_C(i,j) d_C[ldc*(i)+(j)]
+#endif
 
-__global__ void sgemm_fast_kernel(int k, int lda, int ldb, float* d_C, int ldc)
+
+__global__ void sgemm_fast_kernel(int k, int lda, int ldb, int ldc,
+    float* d_A, float* d_B, float* d_C)
 {
     __shared__ float sm_A[KERNEL_SIZE][KERNEL_SIZE * REG_TILE_SIZE],
         sm_B[KERNEL_SIZE][KERNEL_SIZE * REG_TILE_SIZE];
@@ -32,6 +25,7 @@ __global__ void sgemm_fast_kernel(int k, int lda, int ldb, float* d_C, int ldc)
 
     //Block所计算的kernel的左上角第一个元素在矩阵C中的位置为(Bi,Bj)
     int Bi = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.x;
+    int Bj = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.y;
 
     //线程所计算的micro kernel的左上角第一个元素在矩阵C中的位置为(Ci, Cj)
     int Ci = KERNEL_SIZE * REG_TILE_SIZE * blockIdx.x + threadIdx.x * REG_TILE_SIZE;
@@ -51,20 +45,20 @@ __global__ void sgemm_fast_kernel(int k, int lda, int ldb, float* d_C, int ldc)
 
     for (int po = 0; po < k; po += KERNEL_SIZE)
     {
-        float4 vec_gm_a0 = tex1Dfetch(texA, d_A(Bi + (tx % 8) * 16 + ty, po / 4 + (tx / 8) * 2 + 0));
+        float4 vec_gm_a0 = *reinterpret_cast<float4*>(&d_A(Bi + (tx % 8) * 16 + ty, po + (tx / 8) * 8 + 0));
         sm_A[(tx / 8) * 8 + 0][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a0.x;
         sm_A[(tx / 8) * 8 + 1][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a0.y;
         sm_A[(tx / 8) * 8 + 2][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a0.z;
         sm_A[(tx / 8) * 8 + 3][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a0.w;
-        float4 vec_gm_a1 = tex1Dfetch(texA, d_A(Bi + (tx % 8) * 16 + ty, po / 4 + (tx / 8) * 2 + 1));
+        float4 vec_gm_a1 = *reinterpret_cast<float4*>(&d_A(Bi + (tx % 8) * 16 + ty, po + (tx / 8) * 8 + 4));
         sm_A[(tx / 8) * 8 + 4][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a1.x;
         sm_A[(tx / 8) * 8 + 5][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a1.y;
         sm_A[(tx / 8) * 8 + 6][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a1.z;
         sm_A[(tx / 8) * 8 + 7][(tx % 8) * 8 + (ty / 8) * 4 + ty % 4 + ((ty / 4) % 2) * 64] = vec_gm_a1.w;
 
-        *reinterpret_cast<float4*>(&sm_B[tx][ty * REG_TILE_SIZE / 2]) = tex1Dfetch(texB, d_B(po + tx, Cj / 4 + 0));
+        *reinterpret_cast<float4*>(&sm_B[tx][ty * REG_TILE_SIZE / 2]) = *reinterpret_cast<float4*>(&d_B(po + tx, Cj + 0));
         *reinterpret_cast<float4*>(&sm_B[tx][ty * REG_TILE_SIZE / 2 + KERNEL_SIZE * REG_TILE_SIZE / 2])
-            = tex1Dfetch(texB, d_B(po + tx, Cj / 4 + 1));
+            = *reinterpret_cast<float4*>(&d_B(po + tx, Cj + 4));
 
         __syncthreads();
 #pragma unroll
@@ -120,59 +114,13 @@ __global__ void sgemm_fast_kernel(int k, int lda, int ldb, float* d_C, int ldc)
     *reinterpret_cast<float4*>(&d_C(Ci + 7, Cj + 0)) = vec_c7_03; *reinterpret_cast<float4*>(&d_C(Ci + 7, Cj + 4)) = vec_c7_47;
 }
 
-
-
-float sgemm_fast(int k, int m, int n,
-    float* A, int lda,
-    float* B, int ldb,
-    float* C, int ldc)
+void launch_kernel(int k, int lda, int ldb, int ldc, float* d_A, float* d_B, float* d_C,
+    dim3* dim_block, dim3* dim_thread, cudaStream_t* stream)
 {
-    float* d_A, * d_B, * d_C;
-    cudaEvent_t start, stop;
-    checkCudaErrors(cudaEventCreate(&start));
-    checkCudaErrors(cudaEventCreate(&stop));
-    size_t pitch_a, pitch_b, pitch_c;
-
-    int d_m = ((m - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1) * KERNEL_SIZE * REG_TILE_SIZE;
-    int d_n = ((n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1) * KERNEL_SIZE * REG_TILE_SIZE;
-    int d_k = ((k - 1) / KERNEL_SIZE + 1) * KERNEL_SIZE;
-
-    checkCudaErrors(cudaMallocPitch(&d_A, &pitch_a, sizeof(float) * d_k, d_m));
-    checkCudaErrors(cudaMallocPitch(&d_B, &pitch_b, sizeof(float) * d_n, d_k));
-    checkCudaErrors(cudaMallocPitch(&d_C, &pitch_c, sizeof(float) * d_n, d_m));
-
-    checkCudaErrors(cudaMemcpy2D(d_A, pitch_a, A, lda * sizeof(float), k * sizeof(float), m, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy2D(d_B, pitch_b, B, ldb * sizeof(float), n * sizeof(float), k, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemset(d_B + k * pitch_b / sizeof(float), 0, (d_k - k) * pitch_b));
-    checkCudaErrors(cudaMemset(d_C, 0, d_m * pitch_c));
-
-    cudaChannelFormatDesc channelDesc_A = cudaCreateChannelDesc<float4>();
-    cudaChannelFormatDesc channelDesc_B = cudaCreateChannelDesc<float4>();
-    size_t offset_A, offset_B;
-    checkCudaErrors(cudaBindTexture(&offset_A, &texA, d_A, &channelDesc_A, m * pitch_a));
-    checkCudaErrors(cudaBindTexture(&offset_B, &texB, d_B, &channelDesc_B, k * pitch_b));
-
-    int d_lda = pitch_a / sizeof(float4);
-    int d_ldb = pitch_b / sizeof(float4);
-    int d_ldc = pitch_c / sizeof(float);
-
-    dim3 dim_block((m - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1, (n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1, 1),
-        dim_thread(KERNEL_SIZE, KERNEL_SIZE, 1);
-
-    checkCudaErrors(cudaEventRecord(start, 0));
-    sgemm_fast_kernel << <dim_block, dim_thread >> > (k, d_lda, d_ldb, d_C, d_ldc);
-    checkCudaErrors(cudaEventRecord(stop, 0));
-    checkCudaErrors(cudaEventSynchronize(stop));
-    float elapsedTime;
-    checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
-
-    checkCudaErrors(cudaMemcpy2D(C, ldc * sizeof(float), d_C, d_ldc * sizeof(float), n * sizeof(float), m, cudaMemcpyDeviceToHost));
-
-    checkCudaErrors(cudaUnbindTexture(&texA));
-    checkCudaErrors(cudaUnbindTexture(&texB));
-    checkCudaErrors(cudaFree(d_A));
-    checkCudaErrors(cudaFree(d_B));
-    checkCudaErrors(cudaFree(d_C));
-
-    return elapsedTime;
+    if (stream != NULL) {
+        sgemm_fast_kernel << <*dim_block, *dim_thread, 0, *stream >> > (k, lda, ldb, ldc, d_A, d_B, d_C);
+    }
+    else {
+        sgemm_fast_kernel << <*dim_block, *dim_thread >> > (k, lda, ldb, ldc, d_A, d_B, d_C);
+    }
 }
