@@ -55,6 +55,7 @@ float sgemm_fast_multithread(int k, int m, int n,
             int d_n = ((n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1) * KERNEL_SIZE * REG_TILE_SIZE;
             int d_k = ((k - 1) / KERNEL_SIZE + 1) * KERNEL_SIZE;
 
+            checkCudaErrors(cudaSetDevice(my_rank % device_cnt));
             checkCudaErrors(cudaStreamCreate(&streams[my_rank]));
 
             checkCudaErrors(cudaMallocPitch(&d_A, &pitch_a, sizeof(float) * d_k, d_m));
@@ -93,5 +94,5 @@ float sgemm_fast_multithread(int k, int m, int n,
     checkCudaErrors(cudaEventRecord(stop));
     checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
-    return elapsedTime;
+    return elapsedTime / 1000.0;
 }

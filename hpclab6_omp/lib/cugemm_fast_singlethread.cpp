@@ -66,5 +66,5 @@ float sgemm_fast(int k, int m, int n,
     float elapsedTime;
     checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
-    return elapsedTime;
+    return elapsedTime / 1000.0;
 }
