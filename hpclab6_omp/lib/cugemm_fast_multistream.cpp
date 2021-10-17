@@ -34,11 +34,15 @@ float sgemm_fast_multistream(int k, int m, int n,
 
 #ifdef WIN64
     cudaStream_t* streams = (cudaStream_t*)malloc(sizeof(cudaStream_t) * n_stream);
+    float** d_A = (float**)malloc(sizeof(float*) * n_stream);
+    float** d_B = (float**)malloc(sizeof(float*) * n_stream);
+    float** d_C = (float**)malloc(sizeof(float*) * n_stream);
 #else
     cudaStream_t streams[n_stream];
+    float* d_A[n_stream], * d_B[n_stream], * d_C[n_stream];
 #endif
+
     int my_rank = 0;
-    float *d_A[n_stream], *d_B[n_stream], *d_C[n_stream];
 
     for (int idx_x = 0; idx_x < m; idx_x += common_blocksz_x, my_rank++) {
         int blocksz_x = MIN(m - idx_x, common_blocksz_x);
@@ -74,14 +78,17 @@ float sgemm_fast_multistream(int k, int m, int n,
     
     for(int i = 0; i < n_stream; i++){
         checkCudaErrors(cudaSetDevice(i % device_cnt));
+        checkCudaErrors(cudaStreamSynchronize(streams[i]));
         checkCudaErrors(cudaFree(d_A[i]));
         checkCudaErrors(cudaFree(d_B[i]));
         checkCudaErrors(cudaFree(d_C[i]));
-        checkCudaErrors(cudaStreamSynchronize(streams[i]));
     }
 
 #ifdef WIN64
     free(streams);
+    free(d_A);
+    free(d_B);
+    free(d_C);
 #endif
     return 0;
 }

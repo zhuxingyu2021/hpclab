@@ -29,51 +29,48 @@ float sgemm_fast_multithread(int k, int m, int n,
 {
     int common_blocksz_x = m / n_thread;
     int device_cnt;
+
     checkCudaErrors(cudaGetDeviceCount(&device_cnt));
-    checkCudaErrors(cudaDeviceSynchronize());
 
-#pragma omp parallel for num_threads(n_thread) shared(k, m, n, A, lda, B, ldb, C, ldc, common_blocksz_x, streams) 
-        for (int idx_x = 0; idx_x < m; idx_x += common_blocksz_x) {
-            int my_rank = omp_get_thread_num();
-            int blocksz_x = MIN(m - idx_x, common_blocksz_x);
+#pragma omp parallel for num_threads(n_thread) shared(k, m, n, A, lda, B, ldb, C, ldc, common_blocksz_x) 
+    for (int idx_x = 0; idx_x < m; idx_x += common_blocksz_x) {
+        int my_rank = omp_get_thread_num();
+        int blocksz_x = MIN(m - idx_x, common_blocksz_x);
 
-            float* d_A, * d_B, * d_C;
-            size_t pitch_a, pitch_b, pitch_c;
+        float* d_A, * d_B, * d_C;
+        size_t pitch_a, pitch_b, pitch_c;
 
-            int d_m = ((blocksz_x - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1) * KERNEL_SIZE * REG_TILE_SIZE;
-            int d_n = ((n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1) * KERNEL_SIZE * REG_TILE_SIZE;
-            int d_k = ((k - 1) / KERNEL_SIZE + 1) * KERNEL_SIZE;
+        int d_m = ((blocksz_x - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1) * KERNEL_SIZE * REG_TILE_SIZE;
+        int d_n = ((n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1) * KERNEL_SIZE * REG_TILE_SIZE;
+        int d_k = ((k - 1) / KERNEL_SIZE + 1) * KERNEL_SIZE;
 
-            checkCudaErrors(cudaSetDevice(my_rank % device_cnt));
+        checkCudaErrors(cudaSetDevice(my_rank % device_cnt));
 
-            checkCudaErrors(cudaMallocPitch(&d_A, &pitch_a, sizeof(float) * d_k, d_m));
-            checkCudaErrors(cudaMallocPitch(&d_B, &pitch_b, sizeof(float) * d_n, d_k));
-            checkCudaErrors(cudaMallocPitch(&d_C, &pitch_c, sizeof(float) * d_n, d_m));
+        checkCudaErrors(cudaMallocPitch(&d_A, &pitch_a, sizeof(float) * d_k, d_m));
+        checkCudaErrors(cudaMallocPitch(&d_B, &pitch_b, sizeof(float) * d_n, d_k));
+        checkCudaErrors(cudaMallocPitch(&d_C, &pitch_c, sizeof(float) * d_n, d_m));
 
-            checkCudaErrors(cudaMemcpy2D(d_A, pitch_a, &A(idx_x, 0), lda * sizeof(float), k * sizeof(float), blocksz_x, cudaMemcpyHostToDevice));
-            checkCudaErrors(cudaMemcpy2D(d_B, pitch_b, B, ldb * sizeof(float), n * sizeof(float), k, cudaMemcpyHostToDevice));
-            checkCudaErrors(cudaMemset(d_C, 0, d_m * pitch_c));
+        checkCudaErrors(cudaMemcpy2D(d_A, pitch_a, &A(idx_x, 0), lda * sizeof(float), k * sizeof(float), blocksz_x, cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemcpy2D(d_B, pitch_b, B, ldb * sizeof(float), n * sizeof(float), k, cudaMemcpyHostToDevice));
+        checkCudaErrors(cudaMemset(d_C, 0, d_m * pitch_c));
 
-            int d_lda = pitch_a / sizeof(float);
-            int d_ldb = pitch_b / sizeof(float);
-            int d_ldc = pitch_c / sizeof(float);
+        int d_lda = pitch_a / sizeof(float);
+        int d_ldb = pitch_b / sizeof(float);
+        int d_ldc = pitch_c / sizeof(float);
 
-            dim3 dim_block((blocksz_x - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1, (n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1, 1),
-                dim_thread(KERNEL_SIZE, KERNEL_SIZE, 1);
+        dim3 dim_block((blocksz_x - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1, (n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1, 1),
+            dim_thread(KERNEL_SIZE, KERNEL_SIZE, 1);
 
-            launch_kernel(k, d_lda, d_ldb, d_ldc, d_A, d_B, d_C, &dim_block, &dim_thread, NULL);
+        launch_kernel(k, d_lda, d_ldb, d_ldc, d_A, d_B, d_C, &dim_block, &dim_thread, NULL);
 
-            checkCudaErrors(cudaMemcpy2D(&C(idx_x, 0), ldc * sizeof(float), d_C, d_ldc * sizeof(float), n * sizeof(float), blocksz_x, cudaMemcpyDeviceToHost));
+        checkCudaErrors(cudaMemcpy2D(&C(idx_x, 0), ldc * sizeof(float), d_C, d_ldc * sizeof(float), n * sizeof(float), blocksz_x, cudaMemcpyDeviceToHost));
 
-            checkCudaErrors(cudaFree(d_A));
-            checkCudaErrors(cudaFree(d_B));
-            checkCudaErrors(cudaFree(d_C));
+        checkCudaErrors(cudaFree(d_A));
+        checkCudaErrors(cudaFree(d_B));
+        checkCudaErrors(cudaFree(d_C));
 
-            checkCudaErrors(cudaDeviceSynchronize());
-        }
+        checkCudaErrors(cudaDeviceSynchronize());
+    }
 
-#ifdef WIN64
-    free(streams);
-#endif
     return 0;
 }

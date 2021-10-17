@@ -96,17 +96,18 @@ int main(int argc, char** argv) {
     checkCudaErrors(cudaFreeHost(C_multithread));
     checkCudaErrors(cudaFreeHost(C_singlethread));
 
+    checkCudaErrors(cudaHostAlloc(&C_multistream, sizeof(float) * M * N, cudaHostAllocDefault));
+
     t = run_times;
     double multistream_multiply_time = .0;
     while (t > 0) {
         timestart = get_wall_time();
-        sgemm_fast_multithread(K, M, N, A, K, B, N, C_multithread, N, n_threads);
+        sgemm_fast_multistream(K, M, N, A, K, B, N, C_multistream, N, n_threads);
         timeend = get_wall_time();
         multistream_multiply_time += timeend - timestart;
         t--;
     }
 
-    checkCudaErrors(cudaHostAlloc(&C_multistream, sizeof(float) * M * N, cudaHostAllocDefault));
 
     if (!easy_cmd) {
         cout << "Time cost by multistream gemm: " << multistream_multiply_time / run_times << "s" << endl;
