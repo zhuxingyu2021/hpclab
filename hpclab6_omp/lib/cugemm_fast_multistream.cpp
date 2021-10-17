@@ -30,7 +30,6 @@ float sgemm_fast_multistream(int k, int m, int n,
     int common_blocksz_x = m / n_stream;
     int device_cnt;
     checkCudaErrors(cudaGetDeviceCount(&device_cnt));
-    checkCudaErrors(cudaDeviceSynchronize());
 
 #ifdef WIN64
     cudaStream_t* streams = (cudaStream_t*)malloc(sizeof(cudaStream_t) * n_stream);

@@ -8,7 +8,8 @@ CPP_LIB_SRC= \
 	lib/cugemm_utils.cpp\
 	lib/walltime.cpp \
 	lib/cugemm_fast_multithread.cpp \
-	lib/cugemm_fast_singlethread.cpp
+	lib/cugemm_fast_singlethread.cpp \
+	lib/cugemm_fast_multistream.cpp
 
 CU_LIB_SRC= \
 	lib/cugemm_fast_kernel.cu
@@ -24,7 +25,7 @@ INC=-Iinclude\
 DEFS+=
 
 CFLAGS=-g $(DEFS) $(INC)
-NVCC_CFLAGS=$(CFLAGS) -arch=compute_70 -code=sm_70
+NVCC_CFLAGS=$(CFLAGS) -arch=compute_70 -code=sm_70 --default-stream per-thread
 
 LDFLAGS+=-lcuda -lcudart -lcublas -fopenmp
 
