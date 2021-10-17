@@ -32,12 +32,6 @@ float sgemm_fast_multithread(int k, int m, int n,
     checkCudaErrors(cudaGetDeviceCount(&device_cnt));
     checkCudaErrors(cudaDeviceSynchronize());
 
-#ifdef WIN64
-    cudaStream_t* streams = (cudaStream_t*)malloc(sizeof(cudaStream_t) * n_thread);
-#else
-    cudaStream_t streams[n_thread];
-#endif
-
 #pragma omp parallel for num_threads(n_thread) shared(k, m, n, A, lda, B, ldb, C, ldc, common_blocksz_x, streams) 
         for (int idx_x = 0; idx_x < m; idx_x += common_blocksz_x) {
             int my_rank = omp_get_thread_num();
@@ -51,15 +45,13 @@ float sgemm_fast_multithread(int k, int m, int n,
             int d_k = ((k - 1) / KERNEL_SIZE + 1) * KERNEL_SIZE;
 
             checkCudaErrors(cudaSetDevice(my_rank % device_cnt));
-            checkCudaErrors(cudaStreamCreate(&streams[my_rank]));
 
             checkCudaErrors(cudaMallocPitch(&d_A, &pitch_a, sizeof(float) * d_k, d_m));
             checkCudaErrors(cudaMallocPitch(&d_B, &pitch_b, sizeof(float) * d_n, d_k));
             checkCudaErrors(cudaMallocPitch(&d_C, &pitch_c, sizeof(float) * d_n, d_m));
 
-            checkCudaErrors(cudaMemcpy2DAsync(d_A, pitch_a, &A(idx_x, 0), lda * sizeof(float), k * sizeof(float), blocksz_x, cudaMemcpyHostToDevice, streams[my_rank]));
-            checkCudaErrors(cudaMemcpy2DAsync(d_B, pitch_b, B, ldb * sizeof(float), n * sizeof(float), k, cudaMemcpyHostToDevice, streams[my_rank]));
-            checkCudaErrors(cudaMemset(d_B + k * pitch_b / sizeof(float), 0, (d_k - k) * pitch_b));
+            checkCudaErrors(cudaMemcpy2D(d_A, pitch_a, &A(idx_x, 0), lda * sizeof(float), k * sizeof(float), blocksz_x, cudaMemcpyHostToDevice));
+            checkCudaErrors(cudaMemcpy2D(d_B, pitch_b, B, ldb * sizeof(float), n * sizeof(float), k, cudaMemcpyHostToDevice));
             checkCudaErrors(cudaMemset(d_C, 0, d_m * pitch_c));
 
             int d_lda = pitch_a / sizeof(float);
@@ -69,14 +61,15 @@ float sgemm_fast_multithread(int k, int m, int n,
             dim3 dim_block((blocksz_x - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1, (n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1, 1),
                 dim_thread(KERNEL_SIZE, KERNEL_SIZE, 1);
 
-            launch_kernel(k, d_lda, d_ldb, d_ldc, d_A, d_B, d_C, &dim_block, &dim_thread, &streams[my_rank]);
+            launch_kernel(k, d_lda, d_ldb, d_ldc, d_A, d_B, d_C, &dim_block, &dim_thread, NULL);
 
-            checkCudaErrors(cudaMemcpy2DAsync(&C(idx_x, 0), ldc * sizeof(float), d_C, d_ldc * sizeof(float), n * sizeof(float), blocksz_x, cudaMemcpyDeviceToHost, streams[my_rank]));
+            checkCudaErrors(cudaMemcpy2D(&C(idx_x, 0), ldc * sizeof(float), d_C, d_ldc * sizeof(float), n * sizeof(float), blocksz_x, cudaMemcpyDeviceToHost));
 
             checkCudaErrors(cudaFree(d_A));
             checkCudaErrors(cudaFree(d_B));
             checkCudaErrors(cudaFree(d_C));
-            checkCudaErrors(cudaStreamSynchronize(streams[my_rank]));
+
+            checkCudaErrors(cudaDeviceSynchronize());
         }
 
 #ifdef WIN64

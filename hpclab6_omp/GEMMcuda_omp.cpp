@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     int easy_cmd = cmdparser.get<int>("Easy");
     int n_threads = cmdparser.get<int>("num_workers");
 
-    float *A, *B, *C_singlethread, *C_multithread;
+    float *A, *B, *C_singlethread, *C_multithread, *C_multistream;
     //·ÖÅäÒ³Ëø¶¨ÄÚ´æ
     checkCudaErrors(cudaHostAlloc(&A, sizeof(float) * M * K, cudaHostAllocDefault));
     checkCudaErrors(cudaHostAlloc(&B, sizeof(float) * K * N, cudaHostAllocDefault));
@@ -54,33 +54,35 @@ int main(int argc, char** argv) {
     while (t > 0)
     {
         timestart = get_wall_time();
-        singlethread_multiply_time += sgemm_fast(K, M, N, A, K, B, N, C_singlethread, N);
+        sgemm_fast(K, M, N, A, K, B, N, C_singlethread, N);
         timeend = get_wall_time();
+        singlethread_multiply_time += timeend - timestart;
         t--;
     }
 
     if (!easy_cmd) {
-        cout << "Time cost by cublas gemm: " << timeend - timestart << "s" << endl;
+        cout << "Time cost by singlethread/singlestream gemm: " << singlethread_multiply_time/run_times << "s" << endl;
     }
     else {
         cout << M << " " << N << " " << K << endl;
-        cout << (timeend - timestart) / run_times << endl;
+        cout << singlethread_multiply_time / run_times << endl;
     }
 
     t = run_times;
     double multithread_multiply_time = .0;
     while (t > 0) {
         timestart = get_wall_time();
-        multithread_multiply_time += sgemm_fast_multithread(K, M, N, A, K, B, N, C_multithread, N, n_threads);
+        sgemm_fast_multithread(K, M, N, A, K, B, N, C_multithread, N, n_threads);
         timeend = get_wall_time();
+        multithread_multiply_time += timeend - timestart;
         t--;
     }
 
     if (!easy_cmd) {
-        cout << "Time cost by optimized gemm: " << timeend - timestart << "s" << endl;
+        cout << "Time cost by multithread gemm: " << multithread_multiply_time/run_times << "s" << endl;
     }
     else {
-        cout << (timeend - timestart) / run_times << endl;
+        cout << multithread_multiply_time / run_times << endl;
     }
 
     if (run_times == 1 && (!verify_matrix(M, N, C_multithread, C_singlethread))) {
@@ -91,8 +93,29 @@ int main(int argc, char** argv) {
         //output_matrix_tofile("C_singlethread.csv", M, N, C_singlethread);
     }
 
-    checkCudaErrors(cudaFreeHost(A));
-    checkCudaErrors(cudaFreeHost(B));
     checkCudaErrors(cudaFreeHost(C_multithread));
     checkCudaErrors(cudaFreeHost(C_singlethread));
+
+    t = run_times;
+    double multistream_multiply_time = .0;
+    while (t > 0) {
+        timestart = get_wall_time();
+        sgemm_fast_multithread(K, M, N, A, K, B, N, C_multithread, N, n_threads);
+        timeend = get_wall_time();
+        multistream_multiply_time += timeend - timestart;
+        t--;
+    }
+
+    checkCudaErrors(cudaHostAlloc(&C_multistream, sizeof(float) * M * N, cudaHostAllocDefault));
+
+    if (!easy_cmd) {
+        cout << "Time cost by multistream gemm: " << multistream_multiply_time / run_times << "s" << endl;
+    }
+    else {
+        cout << multistream_multiply_time / run_times << endl;
+    }
+
+    checkCudaErrors(cudaFreeHost(A));
+    checkCudaErrors(cudaFreeHost(B));
+    checkCudaErrors(cudaFreeHost(C_multistream));
 }

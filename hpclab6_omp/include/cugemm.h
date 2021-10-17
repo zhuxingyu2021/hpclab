@@ -14,6 +14,11 @@ float sgemm_fast_multithread(int k, int m, int n,
 	float* B, int ldb,
 	float* C, int ldc,
 	int n_thread);
+float sgemm_fast_multistream(int k, int m, int n,
+    float* A, int lda,
+    float* B, int ldb,
+    float* C, int ldc,
+    int n_stream)
 
 void random_initalize_matrix(int M, int N, float* mat);
 

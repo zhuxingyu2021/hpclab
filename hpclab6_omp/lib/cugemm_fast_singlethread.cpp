@@ -31,7 +31,6 @@ float sgemm_fast(int k, int m, int n,
     int d_n = ((n - 1) / (KERNEL_SIZE * REG_TILE_SIZE) + 1) * KERNEL_SIZE * REG_TILE_SIZE;
     int d_k = ((k - 1) / KERNEL_SIZE + 1) * KERNEL_SIZE;
 
-    checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaMallocPitch(&d_A, &pitch_a, sizeof(float) * d_k, d_m));
     checkCudaErrors(cudaMallocPitch(&d_B, &pitch_b, sizeof(float) * d_n, d_k));
     checkCudaErrors(cudaMallocPitch(&d_C, &pitch_c, sizeof(float) * d_n, d_m));
