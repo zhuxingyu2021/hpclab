@@ -19,6 +19,7 @@ SUBDIR4=hpclab4_12
 SUBDIR5=hpclab4_3
 SUBDIR6=hpclab5
 SUBDIR7=hpclab6
+SUBDIR8=hpclab6_omp
 
 TARGET1_SO=$(LIB_PATH)/libMYGEMM.so
 TARGET5_SO=$(LIB_PATH)/libparallelfor.so
@@ -30,6 +31,7 @@ SOURCE4_CPP=$(SUBDIR4)/$(shell ls $(SUBDIR4)|grep '.cpp$$|awk 'NR==1'')
 SOURCE5_CPP=$(SUBDIR5)/$(shell ls $(SUBDIR5)|grep '.cpp$$|awk 'NR==1'')
 SOURCE6_CPP=$(SUBDIR6)/$(shell ls $(SUBDIR6)|grep '.cpp$$|awk 'NR==1'')
 SOURCE7_CPP=$(SUBDIR7)/$(shell ls $(SUBDIR7)|grep '.cpp$$|awk 'NR==1'')
+SOURCE8_CPP=$(SUBDIR8)/$(shell ls $(SUBDIR8)|grep '.cpp$$|awk 'NR==1'')
 
 TARGET1=$(SOURCE1_CPP:.cpp=.x)
 TARGET2=$(SOURCE2_CPP:.cpp=.x)
@@ -38,8 +40,9 @@ TARGET4=$(SOURCE4_CPP:.cpp=.x)
 TARGET5=$(SOURCE5_CPP:.cpp=.x)
 TARGET6=$(SOURCE6_CPP:.cpp=.x)
 TARGET7=$(SOURCE7_CPP:.cpp=.x)
+TARGET8=$(SOURCE8_CPP:.cpp=.x)
 
-all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7)
+all: $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) $(TARGET7) $(TARGET8)
 
 $(TARGET1):$(LIB_PATH)
 	cd $(SUBDIR1) && $(MAKE) && cd ..
@@ -66,6 +69,9 @@ $(TARGET6):$(LIB_PATH) $(TARGET5_SO)
 $(TARGET7):$(LIB_PATH)
 	cd $(SUBDIR7) && $(MAKE) && cd ..
 
+$(TARGET8):$(LIB_PATH)
+	cd $(SUBDIR8) && $(MAKE) && cd ..
+
 $(TARGET1_SO):$(TARGET1)
 
 $(TARGET5_SO):$(TARGET5)
@@ -81,4 +87,5 @@ clean:
 	cd $(SUBDIR5) && $(MAKE) clean && cd ..
 	cd $(SUBDIR6) && $(MAKE) clean && cd ..
 	cd $(SUBDIR7) && $(MAKE) clean && cd ..
+	cd $(SUBDIR8) && $(MAKE) clean && cd ..
 	rm -rf $(LIB_PATH)
