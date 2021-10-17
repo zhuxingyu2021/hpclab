@@ -5,7 +5,6 @@
 #include "texture_fetch_functions.h"
 #include <cassert>
 #include <iostream>
-#include "mytime.h"
 using namespace std;
 
 #ifndef KERNEL_SIZE
@@ -24,7 +23,9 @@ float sgemm_fast(int k, int m, int n,
     float* B, int ldb,
     float* C, int ldc)
 {
-    float timestart, timeend;
+    cudaEvent_t start, stop;
+    checkCudaErrors(cudaEventCreate(&start));
+    checkCudaErrors(cudaEventCreate(&stop));
 
     float* d_A, * d_B, * d_C;
     size_t pitch_a, pitch_b, pitch_c;
@@ -34,7 +35,7 @@ float sgemm_fast(int k, int m, int n,
     int d_k = ((k - 1) / KERNEL_SIZE + 1) * KERNEL_SIZE;
 
     checkCudaErrors(cudaDeviceSynchronize());
-    timestart = get_wall_time();
+    checkCudaErrors(cudaEventRecord(start));
 
     checkCudaErrors(cudaMallocPitch(&d_A, &pitch_a, sizeof(float) * d_k, d_m));
     checkCudaErrors(cudaMallocPitch(&d_B, &pitch_b, sizeof(float) * d_n, d_k));
@@ -60,8 +61,10 @@ float sgemm_fast(int k, int m, int n,
     checkCudaErrors(cudaFree(d_B));
     checkCudaErrors(cudaFree(d_C));
 
+    checkCudaErrors(cudaEventRecord(stop));
+    
+    float elapsedTime;
     checkCudaErrors(cudaDeviceSynchronize());
-    timeend = get_wall_time();
-
-    return timeend-timestart;
+    checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
+    return elapsedTime;
 }
