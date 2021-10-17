@@ -25,13 +25,15 @@ float sgemm_fast_multithread(int k, int m, int n,
     float* A, int lda,
     float* B, int ldb,
     float* C, int ldc,
-    int n_thread, int device_cnt)
+    int n_thread)
 {
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
     int common_blocksz_x = m / n_thread;
+    int device_cnt;
+    checkCudaErrors(cudaGetDeviceCount(&device_cnt));
 
 #ifdef WIN64
     cudaStream_t* streams = (cudaStream_t*)malloc(sizeof(cudaStream_t) * n_thread);
@@ -84,14 +86,13 @@ float sgemm_fast_multithread(int k, int m, int n,
             checkCudaErrors(cudaDeviceSynchronize());
         }
     checkCudaErrors(cudaSetDevice(0));
-    checkCudaErrors(cudaDeviceSynchronize());
+    checkCudaErrors(cudaEventRecord(stop));
 
 #ifdef WIN64
     free(streams);
 #endif
 
     float elapsedTime;
-    checkCudaErrors(cudaEventRecord(stop));
     checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
     return elapsedTime / 1000.0;
