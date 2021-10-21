@@ -75,8 +75,8 @@ int main(int argc, char** argv) {
         C = (float*)aligned_malloc(sizeof(float) * M * N, GEMM_CACHELINE_SIZE);
 
         srand((int)time(0));
-        random_initalize_matrix(M, K, A);
-        random_initalize_matrix(K, N, B);
+        random_initialize_matrix(M, K, A);
+        random_initialize_matrix(K, N, B);
         memset(C, 0, sizeof(float) * M * N);
 
         start = MPI_Wtime();

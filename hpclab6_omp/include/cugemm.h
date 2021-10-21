@@ -20,7 +20,7 @@ float sgemm_fast_multistream(int k, int m, int n,
     float* C, int ldc,
     int n_stream);
 
-void random_initalize_matrix(int M, int N, float* mat);
+void random_initialize_matrix(int M, int N, float* mat);
 
 #define TOLERENCE 1E-1
 bool verify_matrix(int M, int N, float* mat1, float* mat2);

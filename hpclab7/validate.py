@@ -16,8 +16,8 @@ filter = read_tensor_file("filter.txt")
 output_naive = read_tensor_file("output_img_naive.txt")
 output_cudnn = read_tensor_file("output_img_cudnn.txt")
 
-deff = output_cudnn - output_naive
-if np.sum(deff) > 1e-2:
+diff = output_cudnn - output_naive
+if np.sum(diff) > 1e-2:
     print("wrong!")
 else:
     print("ok!")

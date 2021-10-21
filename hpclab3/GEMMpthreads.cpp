@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
     double timestart, timeend;
 
     srand((int)time(0));
-    random_initalize_matrix(M, K, A);
-    random_initalize_matrix(K, N, B);
+    random_initialize_matrix(M, K, A);
+    random_initialize_matrix(K, N, B);
     memset(C, 0, sizeof(float) * M * N);
     memset(C_singlethread, 0, sizeof(float) * M * N);
 

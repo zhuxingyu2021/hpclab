@@ -16,7 +16,7 @@
 
 #define BM 1024
 
-void random_initalize_matrix(int M, int N, float* mat);
+void random_initialize_matrix(int M, int N, float* mat);
 void output_matrix_tofile(const char* filename, int M, int N, float* mat);
 bool verify_matrix(int M, int N, float* mat1, float* mat2);
 void debug_print_matrix(int M, int N, float* mat);

@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
     checkCudaErrors(cudaHostAlloc(&C_multithread, sizeof(float) * M * N, cudaHostAllocDefault));
 
     srand((int)time(0));
-    random_initalize_matrix(M, K, A);
-    random_initalize_matrix(K, N, B);
+    random_initialize_matrix(M, K, A);
+    random_initialize_matrix(K, N, B);
     //output_matrix_tofile("A.csv", M, K, A);
 
     //debug_print_matrix(M, K, A);

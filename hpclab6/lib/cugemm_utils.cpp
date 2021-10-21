@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void random_initalize_matrix(int M, int N, float* mat) {
+void random_initialize_matrix(int M, int N, float* mat) {
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {
             mat[i * N + j] = rand() / float(RAND_MAX);
