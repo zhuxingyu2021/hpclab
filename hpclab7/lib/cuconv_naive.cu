@@ -9,20 +9,17 @@
 #define d_filter(co,ci,h,w) d_filter[(co)*input_channel*filter_h*filter_w+(ci)*filter_h*filter_w+(h)*filter_w+(w)]
 
 //Image uses NCHW memory layout
-__global__ void cuconv_naive_kernel_filter_3x3x3x3(float* d_input_img, int input_h_padded, int input_w_padded, 
+__global__ void cuconv_naive_kernel(float* d_input_img, int input_h_padded, int input_w_padded,
     float* d_output_img, int output_h, int output_w,
-    float* d_filter, int stride_h, int stride_w)
+    float* d_filter, int filter_h, int filter_w, 
+    int input_channel, int output_channel,
+    int stride_h, int stride_w)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
     int j = blockDim.y * blockIdx.y + threadIdx.y;
 
     int start_w = j * stride_w;
     int start_h = i * stride_h;
-
-    const int input_channel = 3;
-    const int output_channel = 3;
-    const int filter_w = 3;
-    const int filter_h = 3;
 
     if (i < output_h && j < output_w) {
         for (int oc = 0; oc < output_channel; oc++)
@@ -44,16 +41,12 @@ __global__ void cuconv_naive_kernel_filter_3x3x3x3(float* d_input_img, int input
     }
 }
 
-float cuconv_naive_filter_3x3x3x3(cuconv_descriptor* d, float* input_img, float* filter, float* output_img)
+float cuconv_naive(cuconv_descriptor* d, float* input_img, float* filter, float* output_img)
 {
     assert(d->output_h == (d->input_h + d->pad_h * 2 - d->filter_h) / d->stride_h + 1);
     assert(d->output_w == (d->input_w + d->pad_w * 2 - d->filter_w) / d->stride_w + 1);
-    assert(d->filter_w == 3);
-    assert(d->filter_h == 3);
-    assert(d->output_c == 3);
-    assert(d->input_c == 3);
     assert(d->N_batch == 1);
-    const int input_channel = 3;
+    int input_channel = d -> input_c;
 
     float *d_input_img, *d_filter, *d_output_img;
     cudaEvent_t start, stop;
@@ -108,8 +101,9 @@ float cuconv_naive_filter_3x3x3x3(cuconv_descriptor* d, float* input_img, float*
         dim_thread(KERNEL_SIZE, KERNEL_SIZE, 1);
 
     cudaEventRecord(start, 0);
-    cuconv_naive_kernel_filter_3x3x3x3 << <dim_block, dim_thread >> > (d_input_img, input_h_padded, input_w_padded,
-        d_output_img, d->output_h, d->output_w, d_filter, d->stride_h, d->stride_w);
+    cuconv_naive_kernel << <dim_block, dim_thread >> > (d_input_img, input_h_padded, input_w_padded,
+        d_output_img, d->output_h, d->output_w, d_filter, d->filter_h, d->filter_w, d->input_c, d->output_c,
+        d->stride_h, d->stride_w);
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);
     float elapsedTime;

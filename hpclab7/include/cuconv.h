@@ -8,25 +8,25 @@
 
 typedef struct{
     const int N_batch = 1;
-    const int input_c = 3; //number of input channels
+    int input_c; //number of input channels
     int input_h; //height of input image
     int input_w; //width of input image
 
-    int output_c = 3; //number of output channels
-    const int filter_h = 3; //height of filter
-    const int filter_w = 3; //width of filter
+    int output_c; //number of output channels
+    int filter_h; //height of filter
+    int filter_w; //width of filter
 
     int stride_h;
     int stride_w;
-    const int pad_h = 1;
-    const int pad_w = 1;
+    int pad_h;
+    int pad_w;
 
     int output_h; //height of output image
     int output_w; //width of output image
 }cuconv_descriptor;
 
 //Image uses NCHW memory layout
-float cuconv_naive_filter_3x3x3x3(cuconv_descriptor* d, float* input_img,float* filter, float* output_img);
+float cuconv_naive(cuconv_descriptor* d, float* input_img,float* filter, float* output_img);
 
 float cuconv_cudnn(cuconv_descriptor* d, float* input_img, float* filter, float* output_img);
 

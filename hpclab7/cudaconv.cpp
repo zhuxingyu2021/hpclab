@@ -27,6 +27,12 @@ int main(int argc, char** argv)
     conv_parameters.input_w = cmdparser.get<int>("W");
     conv_parameters.stride_h = cmdparser.get<int>("stride");
     conv_parameters.stride_w = cmdparser.get<int>("stride");
+    conv_parameters.filter_h = 3;
+    conv_parameters.filter_w = 3;
+    conv_parameters.pad_h = 1;
+    conv_parameters.pad_w = 1;
+    conv_parameters.input_c = 3;
+    conv_parameters.output_c = 3;
 
     int multiple_runs = cmdparser.get<int>("Multiple-runs");
     int run_times = 1;
@@ -88,7 +94,7 @@ int main(int argc, char** argv)
         conv_parameters.output_h *
         conv_parameters.output_w);
 
-    float time1 = cuconv_naive_filter_3x3x3x3(&conv_parameters, input_img, filter, output_img_naive);
+    float time1 = cuconv_naive(&conv_parameters, input_img, filter, output_img_naive);
     float time2 = cuconv_cudnn(&conv_parameters, input_img, filter, output_img_cudnn);
 
     cout << time1 << endl;
