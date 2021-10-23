@@ -13,3 +13,4 @@
 *.x
 *.csv
 *.pdf
+*.tensor

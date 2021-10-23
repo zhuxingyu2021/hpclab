@@ -27,8 +27,8 @@ typedef struct{
 
 //Image uses NCHW memory layout
 float cuconv_naive(cuconv_descriptor* d, float* input_img,float* filter, float* output_img);
-
 float cuconv_cudnn(cuconv_descriptor* d, float* input_img, float* filter, float* output_img);
+float cuconv_im2col(cuconv_descriptor* d, float* input_img, float* filter, float* output_img);
 
 void cuconv_getoutputsize(cuconv_descriptor* d);
 

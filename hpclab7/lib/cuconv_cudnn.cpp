@@ -1,4 +1,5 @@
 #include "cuconv.h"
+#include "mytime.h"
 #include <cudnn.h>
 
 #define checkCudnnErrors( a ) do { \
@@ -95,17 +96,29 @@ float cuconv_cudnn(cuconv_descriptor* d, float* input_img, float* filter, float*
     
     float alpha = 1.0, beta = 0.0;
 
-    cudaEventRecord(start, 0);
+    // 由于cudnn库需要初始化，第一次计算的耗时较长，因此我们计算两次，取最后一次作为cudnn的运行时间
     checkCudnnErrors(cudnnConvolutionForward(handle, &alpha,
         input_img_descriptor, d_input_img,
         filter_descriptor, d_filter,
         conv_descriptor, algo, workspace, workspace_size, &beta,
         output_img_descriptor, d_output_img));
-    cudaEventRecord(stop, 0);
+    checkCudaErrors(cudaMemset(d_output_img, 0, sizeof(float) *
+        d->N_batch *
+        d->output_c *
+        d->output_h *
+        d->output_w));
 
-    cudaEventSynchronize(stop);
+    checkCudaErrors(cudaEventRecord(start, 0));
+    checkCudnnErrors(cudnnConvolutionForward(handle, &alpha,
+        input_img_descriptor, d_input_img,
+        filter_descriptor, d_filter,
+        conv_descriptor, algo, workspace, workspace_size, &beta,
+        output_img_descriptor, d_output_img));
+    checkCudaErrors(cudaEventRecord(stop, 0));
+
+    checkCudaErrors(cudaEventSynchronize(stop));
     float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    checkCudaErrors(cudaEventElapsedTime(&elapsedTime, start, stop));
 
     checkCudaErrors(cudaMemcpy(output_img, d_output_img, sizeof(float) *
         d->N_batch *

@@ -65,9 +65,9 @@ int main(int argc, char** argv)
                     conv_parameters.filter_w);
 
     if (output_to_file) {
-        output_tensor_dim4_to_file("input.txt", input_img, conv_parameters.N_batch,
+        output_tensor_dim4_to_file("input.tensor", input_img, conv_parameters.N_batch,
             conv_parameters.input_c, conv_parameters.input_h, conv_parameters.input_w);
-        output_tensor_dim4_to_file("filter.txt", filter, conv_parameters.output_c,
+        output_tensor_dim4_to_file("filter.tensor", filter, conv_parameters.output_c,
             conv_parameters.input_c, conv_parameters.filter_h, conv_parameters.filter_w);
     }
 
@@ -94,23 +94,43 @@ int main(int argc, char** argv)
         conv_parameters.output_h *
         conv_parameters.output_w);
 
+    float* output_img_im2col = (float*)malloc(sizeof(float) *
+        conv_parameters.N_batch *
+        conv_parameters.output_c *
+        conv_parameters.output_h *
+        conv_parameters.output_w);
+    memset(output_img_im2col, 0, sizeof(float) *
+        conv_parameters.N_batch *
+        conv_parameters.output_c *
+        conv_parameters.output_h *
+        conv_parameters.output_w);
+
     float time1 = cuconv_naive(&conv_parameters, input_img, filter, output_img_naive);
+
     float time2 = cuconv_cudnn(&conv_parameters, input_img, filter, output_img_cudnn);
 
-    cout << time1 << endl;
-    cout << time2 << endl;
+    cout << "Time cost by naive conv: " << time1 / 1000.0 << "s" << endl;
+    cout << "Time cost by cudnn conv: " << time2 / 1000.0 << "s" << endl;
     
     if (output_to_file) {
-        output_tensor_dim4_to_file("output_img_naive.txt", output_img_naive, conv_parameters.N_batch,
+        output_tensor_dim4_to_file("output_img_naive.tensor", output_img_naive, conv_parameters.N_batch,
             conv_parameters.output_c, conv_parameters.output_h, conv_parameters.output_w);
-        output_tensor_dim4_to_file("output_img_cudnn.txt", output_img_cudnn, conv_parameters.N_batch,
+        output_tensor_dim4_to_file("output_img_cudnn.tensor", output_img_cudnn, conv_parameters.N_batch,
             conv_parameters.output_c, conv_parameters.output_h, conv_parameters.output_w);
     }
+
+    float time3 = cuconv_im2col(&conv_parameters, input_img, filter, output_img_im2col);
+    if (output_to_file) {
+        output_tensor_dim4_to_file("output_img_im2col.tensor", output_img_im2col, conv_parameters.N_batch,
+            conv_parameters.output_c, conv_parameters.output_h, conv_parameters.output_w);
+    }
+    cout << "Time cost by im2col conv: " << time3 / 1000.0 << "s" << endl;
     
     free(input_img);
     free(filter);
     free(output_img_naive);
     free(output_img_cudnn);
+    free(output_img_im2col);
     
     return 0;
 }
