@@ -30,11 +30,11 @@ void aligned_free(void* p);
 void sgemm_naive(int k, int m, int n,
                  float* A, int lda,
                  float* B, int ldb,
-                 float* C, int ldc);
+                 float* C, int ldc, int n_threads);
 
 void sgemm_fast(int k, int m, int n,
                 float* A, int lda,
                 float* B, int ldb,
-                float* C, int ldc);
+                float* C, int ldc, int n_threads);
 
 #endif

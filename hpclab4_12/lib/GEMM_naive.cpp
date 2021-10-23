@@ -6,11 +6,11 @@
 void sgemm_naive(int k, int m, int n,
                  float* A, int lda,
                  float* B, int ldb,
-                 float* C, int ldc)
+                 float* C, int ldc, int n_threads)
 {
     int i;
 
-#pragma omp parallel for num_threads(N_THREADS) private(i)
+#pragma omp parallel for num_threads(n_threads) private(i)
         for (i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
                 for (int p = 0; p < k; p++) {

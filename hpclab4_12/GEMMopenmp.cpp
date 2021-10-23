@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
     cmdparser.add<int>("M",'M',"the M dimension",true,512,cmdline::range(1,65536));
     cmdparser.add<int>("N",'N',"the N dimension",true,512,cmdline::range(1,65536));
     cmdparser.add<int>("K",'K',"the K dimension",true,512,cmdline::range(1,65536));
+    cmdparser.add<int>("num_workers",'n',"the number of threads",true,1,cmdline::range(1,16));
     cmdparser.add<int>("Multiple-runs",'m',"enable multiple runs",
                        false,0,cmdline::oneof(0, 1));
     cmdparser.add<double>("Time-limit",'t',"multiple runs time limit",
@@ -45,6 +46,7 @@ int main(int argc, char** argv) {
     double time_limit = 0.0;
     if(multiple_runs) time_limit = cmdparser.get<double>("Time-limit");
     int easy_cmd = cmdparser.get<int>("Easy");
+    int n_threads = cmdparser.get<int>("num_workers");
 
 #ifdef INTEL_MKL
     float* A = (float*)MKL_malloc(sizeof(float) * M * K,GEMM_CACHELINE_SIZE);
@@ -95,7 +97,7 @@ int main(int argc, char** argv) {
     r_times = 0;
     while(1){
         r_times++;
-        sgemm_fast(K, M, N, A, K, B, N, C_gemm, N);
+        sgemm_fast(K, M, N, A, K, B, N, C_gemm, N, n_threads);
         timeend = get_wall_time();
         optimized_multiply_time = timeend - timestart;
         if(optimized_multiply_time > time_limit) break;
@@ -126,7 +128,7 @@ int main(int argc, char** argv) {
     r_times = 0;
     while(1){
         r_times++;
-        sgemm_naive(K, M, N, A, K, B, N, C_naive, N);
+        sgemm_naive(K, M, N, A, K, B, N, C_naive, N, n_threads);
         timeend = get_wall_time();
         naive_multiply_time = timeend - timestart;
         if(naive_multiply_time > time_limit) break;

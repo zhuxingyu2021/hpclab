@@ -7,17 +7,18 @@ typedef struct{
     float* A; int lda;
     float* B; int ldb;
     float* C; int ldc;
-}gemm_naive_multiply_single_thread_kernel_args;
-void* gemm_naive_multiply_single_thread_kernel(void* pf_args) {
-    int k = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->k;
-    int m = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->m;
-    int n = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->n;
-    int lda = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->lda;
-    int ldb = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->ldb;
-    int ldc = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->ldc;
-    float* A = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->A;
-    float* B = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->B;
-    float* C = PF_GET_PARG(pf_args, gemm_naive_multiply_single_thread_kernel_args)->C;
+}sgemm_naive_single_thread_kernel_args;
+void* sgemm_naive_single_thread_kernel(void* pf_args) {
+    // 读取传入参数
+    int k = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->k;
+    int m = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->m;
+    int n = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->n;
+    int lda = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->lda;
+    int ldb = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->ldb;
+    int ldc = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->ldc;
+    float* A = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->A;
+    float* B = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->B;
+    float* C = PF_GET_PARG(pf_args, sgemm_naive_single_thread_kernel_args)->C;
 
     int i;
     for (i = PF_GET_INDEX_START(pf_args); i < PF_GET_INDEX_END(pf_args); i += PF_GET_INDEX_INCREMENT(pf_args)) {
@@ -34,14 +35,15 @@ void* gemm_naive_multiply_single_thread_kernel(void* pf_args) {
 void sgemm_naive(int k, int m, int n,
                  float* A, int lda,
                  float* B, int ldb,
-                 float* C, int ldc)
+                 float* C, int ldc, int n_threads)
 {
-    gemm_naive_multiply_single_thread_kernel_args arg;
+    // 准备子线程传入参数
+    sgemm_naive_single_thread_kernel_args arg;
     arg.k = k; arg.m = m; arg.n = n;
     arg.A = A; arg.lda = lda;
     arg.B = B; arg.ldb = ldb;
     arg.C = C; arg.ldc = ldc;
 
-    parallel_for(0, m, 1, &gemm_naive_multiply_single_thread_kernel, (void*)&arg, N_THREADS);
+    parallel_for(0, m, 1, &sgemm_naive_single_thread_kernel, (void*)&arg, n_threads);
 }
 

@@ -16,11 +16,11 @@ DEFS+= \
 
 MPI_LIB=${MPI_ROOT}/lib/
 
-CFLAGS=-O3 $(DEFS) $(INC)
+CFLAGS=-O3 -fopenmp $(DEFS) $(INC)
 CFLAGS_OBJ=
 LDFLAGS+=
 LDFLAGS1=$(LDFLAGS) -lmpi -Wl,-rpath=$(MPI_LIB)
-LDFLAGS2=$(LDFLAGS) -fopenmp
+LDFLAGS2=$(LDFLAGS)
 LDFLAGS3=$(LDFLAGS) -lparallelfor -lpthread
 LDFLAGS4=$(LDFLAGS) -lparallelfor -lpthread
 LDFLAGS5=$(LDFLAGS) -lparallelfor -lpthread

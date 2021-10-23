@@ -19,11 +19,11 @@ INC=-Iinclude/\
 
 MKL_LIB=${INTEL_ROOT}/mkl/${INTEL_VERSION}/lib/intel64
 
-DEFS+=
+DEFS+= -DMKL_ILP64
 
 CFLAGS=-O3 -march=core-avx2 $(DEFS) $(INC)
 CFLAGS_OBJ=-fPIC
-LDFLAGS+=-fopenmp -qmkl=sequential -lparallelfor -Wl,-rpath=$(MKL_LIB)
+LDFLAGS+=-fopenmp -qmkl=parallel -lparallelfor -Wl,-rpath=$(MKL_LIB)
 LDLIBS+=-L$(MKL_LIB)\
 	-L.
 

@@ -11,8 +11,6 @@
 
 #define GEMM_CACHELINE_SIZE 64
 
-#define N_THREADS 8
-
 void random_initialize_matrix(int M, int N, float* mat);
 void output_matrix_tofile(const char* filename, int M, int N, float* mat);
 bool verify_matrix(int M, int N, float* mat1, float* mat2);
@@ -24,11 +22,11 @@ void aligned_free(void* p);
 void sgemm_naive(int k, int m, int n,
                  float* A, int lda,
                  float* B, int ldb,
-                 float* C, int ldc);
+                 float* C, int ldc, int n_threads);
 
 void sgemm_fast(int k, int m, int n,
                 float* A, int lda,
                 float* B, int ldb,
-                float* C, int ldc);
+                float* C, int ldc, int n_threads);
 
 #endif
