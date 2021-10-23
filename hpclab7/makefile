@@ -3,10 +3,12 @@ NVCC=nvcc
 CC_LIB_SRC=  \
 
 CPP_LIB_SRC= \
-	lib/cuconv_utils.cpp
+	lib/cuconv_utils.cpp \
+	lib/cuconv_cudnn.cpp
 
 CU_LIB_SRC= \
-	lib/cuconv_naive.cu
+	lib/cuconv_naive.cu \
+	lib/cuconv_im2col.cu
 
 CC_MAIN_SRC= \
 
@@ -22,7 +24,7 @@ DEFS+=
 CFLAGS=-O3 $(DEFS) $(INC)
 NVCC_CFLAGS=$(CFLAGS) -arch=compute_70 -code=sm_70
 
-LDFLAGS+=-lcuda -lcudart -lcublas
+LDFLAGS+=-lcuda -lcudart -lcublas -lcudnn
 
 LDLIBS+=-L$(CUDA_PATH)/lib64
 

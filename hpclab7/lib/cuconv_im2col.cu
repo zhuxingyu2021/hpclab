@@ -2,8 +2,6 @@
 #include <cassert>
 #include <string.h>
 
-#define __CUDACC__
-
 #include "cuda_texture_types.h"
 #include "texture_fetch_functions.h"
 
