@@ -55,3 +55,4 @@ clean:
 	rm -f $(ALLOBJS)
 	rm -f $(OUTPUT)
 	rm -f *.tmp
+	rm -f *.tensor

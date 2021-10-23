@@ -14,3 +14,4 @@
 *.csv
 *.pdf
 *.tensor
+CMakeLists.txt
